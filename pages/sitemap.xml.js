@@ -1,6 +1,6 @@
 import SPOTS from "../data/spots";
 
-const BASE = "https://kids-outing.vercel.app";
+const BASE = "https://gokidsouting.com";
 
 function generateSitemap(spots) {
   return `<?xml version="1.0" encoding="UTF-8"?>

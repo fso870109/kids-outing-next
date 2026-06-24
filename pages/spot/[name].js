@@ -54,7 +54,7 @@ export default function SpotPage({ spot, related }) {
   const typeLabel = spot.type === "indoor" ? "🏠 室內" : "🌳 室外";
   const typeColor = spot.type === "indoor" ? "#74c0fc" : "#69db7c";
   const feeColor = spot.fee === "免費" ? "#69db7c" : spot.fee === "付費" ? "#ffa94d" : "#da77f2";
-  const BASE = "https://kids-outing.vercel.app";
+  const BASE = "https://gokidsouting.com";
   const title = `${spot.city} ${spot.type === "indoor" ? "室內" : "室外"}親子景點 — ${spot.name} | 假日遛小孩`;
   const desc = `${spot.name}，位於${spot.city}${spot.district}，${spot.desc}。費用：${spot.fee}，適合${spot.age}，營業時間：${spot.hours}。`;
   const canonical = `${BASE}/spot/${encodeURIComponent(spot.name)}`;

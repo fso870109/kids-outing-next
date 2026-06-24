@@ -134,7 +134,7 @@ export default function Home() {
   // 分享行程
   const shareItinerary = () => {
     if (itinerary.length === 0) { alert("行程是空的！先加入景點吧"); return; }
-    const text = "我規劃的週末行程 🧒\n\n" + itinerary.map((s,i) => `${i+1}. ${s.name}（${s.city}）`).join("\n") + "\n\n由「假日遛小孩」規劃 kids-outing.vercel.app";
+    const text = "我規劃的週末行程 🧒\n\n" + itinerary.map((s,i) => `${i+1}. ${s.name}（${s.city}）`).join("\n") + "\n\n由「假日遛小孩」規劃 gokidsouting.com";
     try {
       navigator.clipboard.writeText(text).then(() => {
         setShareToast("✅ 行程已複製！");
@@ -187,14 +187,14 @@ export default function Home() {
       <Head>
         <title>假日遛小孩 — 全台 {SPOTS.length} 個親子景點一手掌握</title>
         <meta name="description" content="全台22縣市869個親子景點，室內室外分類，即時顯示營業狀態，GPS附近景點，免費使用不用下載App。" />
-        <link rel="canonical" href="https://kids-outing.vercel.app" />
+        <link rel="canonical" href="https://gokidsouting.com" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="假日遛小孩 — 全台親子景點懶人包" />
         <meta property="og:description" content="全台869個親子景點，室內室外篩選，即時營業狀態，GPS附近景點，免費使用。" />
-        <meta property="og:url" content="https://kids-outing.vercel.app" />
-        <meta property="og:image" content="https://kids-outing.vercel.app/og-default.jpg" />
+        <meta property="og:url" content="https://gokidsouting.com" />
+        <meta property="og:image" content="https://gokidsouting.com/og-default.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="假日遛小孩" />
@@ -204,19 +204,19 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="假日遛小孩 — 全台親子景點懶人包" />
         <meta name="twitter:description" content="全台869個親子景點，室內室外篩選，即時營業狀態，免費使用。" />
-        <meta name="twitter:image" content="https://kids-outing.vercel.app/og-default.jpg" />
+        <meta name="twitter:image" content="https://gokidsouting.com/og-default.jpg" />
 
         {/* Schema.org */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "假日遛小孩",
-          "url": "https://kids-outing.vercel.app",
+          "url": "https://gokidsouting.com",
           "description": "全台22縣市親子景點查詢平台",
           "inLanguage": "zh-TW",
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://kids-outing.vercel.app/?search={search_term_string}",
+            "target": "https://gokidsouting.com/?search={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         })}} />
