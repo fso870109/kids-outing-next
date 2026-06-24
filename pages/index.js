@@ -274,8 +274,12 @@ export default function Home() {
               <div style={{ fontWeight:700, fontSize:12, color:"#333" }}>{seasonInfo.label}</div>
               <div style={{ fontSize:11, color:"#666", marginTop:2 }}>{seasonInfo.desc}</div>
             </div>
-            <button onClick={()=>{ setActiveTag(seasonInfo.tags[0]); setShowSeasonBanner(false); }} style={{ background:"#ffa94d", color:"#fff", border:"none", borderRadius:9, padding:"5px 11px", fontSize:12, fontWeight:700, cursor:"pointer" }}>看看</button>
-            <button onClick={()=>setShowSeasonBanner(false)} style={{ background:"none", border:"none", color:"#aaa", fontSize:16, cursor:"pointer", padding:"0 4px" }}>×</button>
+            {activeTag === seasonInfo.tags[0] ? (
+              <button onClick={()=>setActiveTag("全部")} style={{ background:"#868e96", color:"#fff", border:"none", borderRadius:9, padding:"5px 11px", fontSize:12, fontWeight:700, cursor:"pointer" }}>取消</button>
+            ) : (
+              <button onClick={()=>setActiveTag(seasonInfo.tags[0])} style={{ background:"#ffa94d", color:"#fff", border:"none", borderRadius:9, padding:"5px 11px", fontSize:12, fontWeight:700, cursor:"pointer" }}>看看</button>
+            )}
+            <button onClick={()=>{ setActiveTag("全部"); setShowSeasonBanner(false); }} style={{ background:"none", border:"none", color:"#aaa", fontSize:16, cursor:"pointer", padding:"0 4px" }}>×</button>
           </div>
         )}
 
