@@ -194,7 +194,7 @@ export default function Home() {
         <meta property="og:title" content="假日遛小孩 — 全台親子景點懶人包" />
         <meta property="og:description" content="全台869個親子景點，室內室外篩選，即時營業狀態，GPS附近景點，免費使用。" />
         <meta property="og:url" content="https://kids-outing.vercel.app" />
-        <meta property="og:image" content="https://kids-outing.vercel.app/og-default.png" />
+        <meta property="og:image" content="https://kids-outing.vercel.app/og-default.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="假日遛小孩" />
@@ -204,7 +204,7 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="假日遛小孩 — 全台親子景點懶人包" />
         <meta name="twitter:description" content="全台869個親子景點，室內室外篩選，即時營業狀態，免費使用。" />
-        <meta name="twitter:image" content="https://kids-outing.vercel.app/og-default.png" />
+        <meta name="twitter:image" content="https://kids-outing.vercel.app/og-default.jpg" />
 
         {/* Schema.org */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({

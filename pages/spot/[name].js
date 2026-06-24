@@ -58,7 +58,7 @@ export default function SpotPage({ spot, related }) {
   const title = `${spot.city} ${spot.type === "indoor" ? "室內" : "室外"}親子景點 — ${spot.name} | 假日遛小孩`;
   const desc = `${spot.name}，位於${spot.city}${spot.district}，${spot.desc}。費用：${spot.fee}，適合${spot.age}，營業時間：${spot.hours}。`;
   const canonical = `${BASE}/spot/${encodeURIComponent(spot.name)}`;
-  const ogImage = `${BASE}/og-default.png`;
+  const ogImage = `${BASE}/og-default.jpg`;
   const mapsQuery = encodeURIComponent(`${spot.name} ${spot.city}${spot.district}`);
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
   const mapsEmbedUrl = `https://maps.google.com/maps?q=${mapsQuery}&output=embed&hl=zh-TW`;
