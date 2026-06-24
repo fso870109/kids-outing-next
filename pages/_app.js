@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Script from "next/script";
+import Head from "next/head";
 
 const GA_ID = "G-64FZBDC6TL";
 
@@ -19,6 +20,10 @@ export default function App({ Component, pageProps }) {
 
   return (
     <>
+      <Head>
+        <meta name="google-site-verification" content="Kqx5nqCSBsIfZ0z87RdaLmupI1pCMsN_N5pFEap_zHM" />
+      </Head>
+
       {/* Google Analytics */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
