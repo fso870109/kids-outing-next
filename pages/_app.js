@@ -21,7 +21,7 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <meta name="google-site-verification" content="Kqx5nqCSBsIfZ0z87RdaLmupI1pCMsN_N5pFEap_zHM" />
+        <meta name="google-site-verification" content="KFsM4y2B9Cwdg4xgfsQP0SdH6lg52mNqvd77HSHnauc" />
       </Head>
 
       {/* Google Analytics */}
