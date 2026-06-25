@@ -66,7 +66,7 @@ function getSpotImage(spot) {
     .map(t => TAG_KEYWORDS[t])
     .find(Boolean) || "taiwan,travel,nature";
   // 用 spot.id 當 seed，讓每個景點圖片固定不變
-  return `https://source.unsplash.com/400x300/?${keyword}&sig=${spot.id}`;
+  return `https://picsum.photos/seed/${spot.id}/400/300`;
 }
 
 const SEASONS = {

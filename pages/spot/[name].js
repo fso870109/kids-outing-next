@@ -123,14 +123,7 @@ export default function SpotPage({ spot, related }) {
         {/* Header */}
         <div style={{background:`linear-gradient(135deg,#ff6b6b,#ffa94d)`,position:"relative",overflow:"hidden"}}>
           <img
-            src={`https://source.unsplash.com/600x300/?${(spot.tags.map(t=>({
-              "遊樂園":"amusement+park","動物":"zoo,animals","自然":"nature,taiwan",
-              "購物":"shopping,mall","老街":"old+street,taiwan","美食":"food,taiwan",
-              "教育":"museum,children","步道":"hiking,trail","農場":"farm,animals",
-              "夜市":"night+market,taiwan","海灘":"beach,ocean","溫泉":"hot+spring",
-              "藝術":"art,gallery","歷史":"historic,temple","科學":"science,museum",
-              "戲水":"water+park,swimming","文化":"culture,taiwan","海洋":"aquarium,ocean",
-            }[t]))).find(Boolean)||"taiwan,travel"}&sig=${spot.id}`}
+            src={`https://picsum.photos/seed/${spot.id}/600/300`}
             alt={spot.name}
             style={{width:"100%",height:200,objectFit:"cover",display:"block",opacity:0.7}}
             onError={e=>{e.target.style.display="none";}}
@@ -234,7 +227,7 @@ export default function SpotPage({ spot, related }) {
                     <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", display:"flex", alignItems:"center", gap:10, boxShadow:"0 2px 8px rgba(0,0,0,0.05)", border:"1px solid #f0e6d3" }}>
                   <div style={{width:48,height:48,borderRadius:12,overflow:"hidden",flexShrink:0,background:"#f0f0f0"}}>
                     <img
-                      src={`https://source.unsplash.com/100x100/?${s.tags[0]||"taiwan"}&sig=${s.id}`}
+                      src={`https://picsum.photos/seed/${s.id}/100/100`}
                       alt={s.name}
                       style={{width:"100%",height:"100%",objectFit:"cover"}}
                       onError={e=>{e.target.style.display="none";e.target.parentNode.style.display="flex";e.target.parentNode.style.alignItems="center";e.target.parentNode.style.justifyContent="center";e.target.parentNode.innerHTML=s.emoji;}}
