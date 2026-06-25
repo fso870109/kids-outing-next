@@ -156,8 +156,31 @@ export default function SpotPage({ spot, related }) {
 
           {/* 描述 */}
           <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-            <p style={{ fontSize:15, color:"#333", lineHeight:1.7, margin:0 }}>{spot.desc}</p>
+            <h2 style={{ fontSize:14, fontWeight:700, color:"#333", margin:"0 0 10px" }}>📍 景點介紹</h2>
+            <p style={{ fontSize:15, color:"#333", lineHeight:1.8, margin:0 }}>
+              {spot.content || spot.desc}
+            </p>
           </div>
+
+          {/* 遊記搜尋連結 */}
+          {spot.blogKeywords && spot.blogKeywords.length > 0 && (
+            <div style={{ background:"#f0f4ff", borderRadius:16, padding:16, marginBottom:12, border:"1.5px solid #d0d9ff" }}>
+              <h2 style={{ fontSize:13, fontWeight:700, color:"#3b5bdb", margin:"0 0 10px" }}>📖 相關遊記參考</h2>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {spot.blogKeywords.map((kw, i) => (
+                  <a key={i}
+                    href={`https://www.google.com/search?q=${encodeURIComponent(kw + ' 遊記 親子')}`}
+                    target="_blank" rel="noopener noreferrer nofollow"
+                    style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", background:"#fff", borderRadius:10, textDecoration:"none", border:"1px solid #e0e7ff" }}
+                  >
+                    <span style={{ fontSize:14 }}>🔍</span>
+                    <span style={{ fontSize:13, color:"#3b5bdb", fontWeight:600 }}>{kw}</span>
+                    <span style={{ marginLeft:"auto", fontSize:12, color:"#aaa" }}>搜尋遊記 →</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 營業資訊 */}
           <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
