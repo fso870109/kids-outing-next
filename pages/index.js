@@ -61,11 +61,9 @@ const TAG_KEYWORDS = {
 };
 
 function getSpotImage(spot) {
-  // 按第一個匹配的標籤取關鍵字
-  const keyword = spot.tags
-    .map(t => TAG_KEYWORDS[t])
-    .find(Boolean) || "taiwan,travel,nature";
-  // 用 spot.id 當 seed，讓每個景點圖片固定不變
+  // 有真實照片優先用
+  if (spot.photo) return spot.photo;
+  // 否則用 Picsum 佔位圖
   return `https://picsum.photos/seed/${spot.id}/400/300`;
 }
 
@@ -194,14 +192,36 @@ export default function Home() {
 
   // 巫師推薦
   const WIZARD = [
-    { q:"今天天氣？", opts:[{label:"☀️ 天氣好",val:"sunny"},{label:"🌧️ 下雨天",val:"rainy"}] },
-    { q:"孩子幾歲？", opts:[{label:"👶 0–2歲",val:"02"},{label:"🎠 3–5歲",val:"35"},{label:"🦖 6–8歲",val:"68"},{label:"🏄 9–12歲",val:"912"}] },
-    { q:"預算？",     opts:[{label:"🆓 免費",val:"free"},{label:"💰 付費都可",val:"paid"}] },
-    { q:"偏好類型？", opts:[{label:"🎢 遊樂刺激",val:"fun"},{label:"🌿 自然輕鬆",val:"nature"},{label:"📚 學習教育",val:"edu"},{label:"🍜 美食文化",val:"food"}] },
+    { q:"你在哪個地區？", key:"region", opts:[
+      {label:"📍 北部",val:"north"},
+      {label:"📍 中部",val:"central"},
+      {label:"📍 南部",val:"south"},
+      {label:"📍 東部",val:"east"},
+      {label:"🏝️ 離島",val:"island"},
+      {label:"🌏 全台都可",val:"all"},
+    ]},
+    { q:"今天天氣？", key:"weather", opts:[{label:"☀️ 天氣好",val:"sunny"},{label:"🌧️ 下雨天",val:"rainy"}] },
+    { q:"孩子幾歲？", key:"age", opts:[{label:"👶 0–2歲",val:"02"},{label:"🎠 3–5歲",val:"35"},{label:"🦖 6–8歲",val:"68"},{label:"🏄 9–12歲",val:"912"}] },
+    { q:"預算？", key:"budget", opts:[{label:"🆓 免費",val:"free"},{label:"💰 付費都可",val:"paid"}] },
+    { q:"偏好類型？", key:"type", opts:[{label:"🎢 遊樂刺激",val:"fun"},{label:"🌿 自然輕鬆",val:"nature"},{label:"📚 學習教育",val:"edu"},{label:"🍜 美食文化",val:"food"}] },
   ];
+
+  const REGION_CITIES = {
+    north:   ["台北","新北","桃園","基隆","新竹市","新竹縣"],
+    central: ["台中","苗栗","彰化","南投","雲林"],
+    south:   ["台南","高雄","嘉義市","嘉義縣","屏東"],
+    east:    ["宜蘭","花蓮","台東"],
+    island:  ["澎湖","金門","連江縣"],
+    all:     [],
+  };
 
   const runWizard = ans => {
     let list = [...SPOTS];
+    // 地區篩選
+    if(ans.region && ans.region !== "all") {
+      const cities = REGION_CITIES[ans.region] || [];
+      if(cities.length > 0) list = list.filter(s => cities.includes(s.city));
+    }
     if(ans.weather==="rainy") list=list.filter(s=>s.type==="indoor");
     if(ans.budget==="free") list=list.filter(s=>s.fee==="免費");
     if(ans.age==="02") list=list.filter(s=>s.age==="全齡"&&s.type==="indoor");
@@ -212,8 +232,20 @@ export default function Home() {
     if(ans.type==="nature") list=list.filter(s=>s.type==="outdoor"&&s.tags.some(t=>["自然","步道","農場"].includes(t)));
     if(ans.type==="edu") list=list.filter(s=>s.tags.some(t=>["教育","科學","歷史"].includes(t)));
     if(ans.type==="food") list=list.filter(s=>s.tags.includes("美食"));
-    // shuffle & take 3
-    list=list.sort(()=>Math.random()-0.5).slice(0,3);
+    // fallback：結果不足時放寬年齡和類型限制，保留地區+天氣+預算
+    if(list.length < 3) {
+      let fallback = [...SPOTS];
+      if(ans.region && ans.region !== "all") {
+        const cities = REGION_CITIES[ans.region] || [];
+        if(cities.length > 0) fallback = fallback.filter(s => cities.includes(s.city));
+      }
+      if(ans.weather==="rainy") fallback=fallback.filter(s=>s.type==="indoor");
+      if(ans.budget==="free") fallback=fallback.filter(s=>s.fee==="免費");
+      list = fallback;
+    }
+    // 最後保險
+    if(list.length === 0) list = [...SPOTS];
+    list = list.sort(()=>Math.random()-0.5).slice(0,3);
     setWizardResult(list);
     setWizardStep(99);
   };
@@ -343,64 +375,66 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
   return (
     <div>
       {/* ── 頂部 Header ── */}
-      <div style={{background:"#fff",padding:"14px 16px 10px",boxShadow:"0 1px 0 #f0f0f0",position:"sticky",top:0,zIndex:100}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+      <div style={{background:"#fff",padding:"16px 16px 12px",boxShadow:"0 1px 0 #f0f0f0",position:"sticky",top:0,zIndex:100}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
           <div>
-            <div style={{fontWeight:900,fontSize:20,color:"#FF6B6B",letterSpacing:-0.5}}>GoKids <span style={{color:"#333",fontWeight:400,fontSize:14}}>outing</span></div>
-            <div style={{fontSize:11,color:"#aaa",marginTop:1}}>{greeting}</div>
+            <div style={{fontWeight:900,fontSize:22,color:"#FF6B6B",letterSpacing:-0.5}}>假日遛小孩</div>
+            <div style={{fontSize:12,color:"#aaa",marginTop:2}}>{greeting}</div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            {itinerary.length>0&&<button onClick={()=>setShowItinerary(true)} style={{background:"#FF6B6B",color:"#fff",border:"none",borderRadius:16,padding:"5px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗓️ {itinerary.length}</button>}
-            <button onClick={shareList} style={{background:"none",border:"1.5px solid #eee",borderRadius:20,padding:"5px 12px",fontSize:12,color:"#666",cursor:"pointer"}}>📤 分享</button>
+            {itinerary.length>0&&<button onClick={()=>setShowItinerary(true)} style={{background:"#FF6B6B",color:"#fff",border:"none",borderRadius:16,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗓️ {itinerary.length}</button>}
+            <button onClick={shareList} style={{background:"none",border:"1.5px solid #eee",borderRadius:20,padding:"6px 14px",fontSize:12,color:"#666",cursor:"pointer",display:"flex",alignItems:"center",gap:4}}>
+              <span>📤</span><span>分享</span>
+            </button>
           </div>
         </div>
         {/* 搜尋欄 */}
         <div style={{position:"relative"}}>
-          <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:15}}>🔍</span>
+          <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔍</span>
           <input
             placeholder="今天想帶孩子去哪玩？"
             onClick={()=>setTab("explore")}
             readOnly
-            style={{width:"100%",boxSizing:"border-box",padding:"10px 12px 10px 36px",borderRadius:12,border:"1.5px solid #eee",fontSize:14,background:"#f8f9fa",outline:"none",cursor:"pointer",color:"#888"}}
+            style={{width:"100%",padding:"12px 14px 12px 40px",borderRadius:14,border:"1.5px solid #eee",fontSize:14,background:"#f8f9fa",outline:"none",cursor:"pointer",color:"#999",WebkitAppearance:"none"}}
           />
         </div>
       </div>
 
       {/* ── Hero 大圖 ── */}
-      {hero&&<div style={{margin:"12px 16px 0",position:"relative",borderRadius:20,overflow:"hidden",height:220,cursor:"pointer"}}>
+      {hero&&<div style={{margin:"14px 16px 0",position:"relative",borderRadius:20,overflow:"hidden",height:220,cursor:"pointer"}}>
         <img src={getSpotImage(hero)} alt={hero.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.style.display="none";e.target.parentNode.style.background=`linear-gradient(135deg,${getGradient(hero)})`;}}/>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.1) 60%)"}}>
-          <div style={{position:"absolute",top:12,left:12}}>
-            <span style={{background:"#FF6B6B",color:"#fff",fontSize:11,fontWeight:700,padding:"3px 10px",borderRadius:20}}>🔥 本週爆紅</span>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.05) 55%)"}}>
+          <div style={{position:"absolute",top:14,left:14}}>
+            <span style={{background:"#FF6B6B",color:"#fff",fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20}}>🔥 本週爆紅</span>
           </div>
-          <div style={{position:"absolute",top:12,right:12}}>
-            <button onClick={e=>{e.stopPropagation();toggleFav(hero.id);}} style={{background:"rgba(255,255,255,0.25)",border:"none",borderRadius:20,width:32,height:32,cursor:"pointer",fontSize:16,backdropFilter:"blur(4px)"}}>
+          <div style={{position:"absolute",top:14,right:14}}>
+            <button onClick={e=>{e.stopPropagation();toggleFav(hero.id);}} style={{background:"rgba(255,255,255,0.25)",border:"none",borderRadius:20,width:34,height:34,cursor:"pointer",fontSize:17,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
               {favSet.has(hero.id)?"❤️":"🤍"}
             </button>
           </div>
-          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"16px"}}>
-            <div style={{color:"#fff",fontWeight:800,fontSize:18,marginBottom:4}}>{hero.name}</div>
-            <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
-              <span style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>📍 {hero.city}</span>
-              <span style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{hero.type==="indoor"?"❄️ 室內":"🌳 室外"}</span>
-              <span style={{color:"rgba(255,255,255,0.85)",fontSize:12}}>{hero.fee}</span>
+          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"18px 16px"}}>
+            <div style={{color:"#fff",fontWeight:800,fontSize:19,marginBottom:6,textShadow:"0 1px 4px rgba(0,0,0,0.4)"}}>{hero.name}</div>
+            <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>📍 {hero.city}</span>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{hero.type==="indoor"?"❄️ 室內":"🌳 室外"}</span>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{hero.fee}</span>
             </div>
             <Link href={`/spot/${encodeURIComponent(hero.name)}`}>
-              <span style={{background:"#FF6B6B",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer"}}>立即看 →</span>
+              <span style={{background:"#FF6B6B",color:"#fff",padding:"9px 22px",borderRadius:22,fontSize:13,fontWeight:700,cursor:"pointer",display:"inline-block"}}>立即看 →</span>
             </Link>
           </div>
         </div>
-        <div style={{position:"absolute",bottom:12,right:16,display:"flex",gap:4}}>
+        <div style={{position:"absolute",bottom:16,right:16,display:"flex",gap:4}}>
           {HOT_SPOTS.slice(0,5).map((_,i)=><div key={i} style={{width:i===0?16:6,height:6,borderRadius:3,background:i===0?"#fff":"rgba(255,255,255,0.4)"}}/>)}
         </div>
       </div>}
 
       {/* ── 情境 Chip 橫向滑動 ── */}
-      <div style={{padding:"12px 0 4px"}}>
-        <div style={{overflowX:"auto",display:"flex",gap:8,padding:"0 16px",scrollbarWidth:"none"}}>
+      <div style={{background:"#fff",marginTop:14,paddingTop:14,paddingBottom:6}}>
+        <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
           {CHIPS.map(chip=>(
-            <button key={chip.id} onClick={()=>{setActiveChip(chip.id);setTab("explore");}} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 14px",borderRadius:16,border:"1.5px solid #eee",background:"#fff",cursor:"pointer",minWidth:60}}>
-              <span style={{fontSize:22}}>{chip.icon}</span>
+            <button key={chip.id} onClick={()=>{setActiveChip(chip.id);setTab("explore");}} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 16px",borderRadius:16,border:"1.5px solid #f0f0f0",background:"#fafafa",cursor:"pointer",minWidth:70,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+              <span style={{fontSize:24}}>{chip.icon}</span>
               <span style={{fontSize:11,color:"#555",fontWeight:600,whiteSpace:"nowrap"}}>{chip.label}</span>
             </button>
           ))}
@@ -513,16 +547,16 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
             <div style={{fontSize:12,color:"#aaa",marginBottom:4}}>問題 {wizardStep}/{WIZARD.length}</div>
             <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:16}}>{WIZARD[wizardStep-1].q}</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <div style={{display:"grid",gridTemplateColumns: WIZARD[wizardStep-1].opts.length > 4 ? "1fr 1fr 1fr" : "1fr 1fr",gap:8}}>
               {WIZARD[wizardStep-1].opts.map(opt=>{
-                const keys=["weather","age","budget","type"];
+                const key = WIZARD[wizardStep-1].key;
                 return (
                   <button key={opt.val} onClick={()=>{
-                    const ans={...wizardAnswers,[keys[wizardStep-1]]:opt.val};
+                    const ans={...wizardAnswers,[key]:opt.val};
                     setWizardAnswers(ans);
                     if(wizardStep===WIZARD.length) runWizard(ans);
                     else setWizardStep(wizardStep+1);
-                  }} style={{padding:"12px",borderRadius:12,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:14,fontWeight:600,cursor:"pointer",color:"#333"}}>
+                  }} style={{padding:"12px 8px",borderRadius:12,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:13,fontWeight:600,cursor:"pointer",color:"#333",textAlign:"center"}}>
                     {opt.label}
                   </button>
                 );
@@ -531,25 +565,34 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
             <button onClick={()=>{setWizardStep(0);setWizardAnswers({});}} style={{marginTop:12,background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer"}}>← 重新來過</button>
           </div>
         )}
-        {wizardStep===99&&wizardResult.length>0&&(
+        {wizardStep===99&&(
           <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
             <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:4}}>🎉 幫你找到了！</div>
-            <div style={{fontSize:13,color:"#aaa",marginBottom:16}}>根據你的條件推薦 3 個景點</div>
-            <div style={{display:"grid",gap:10}}>
-              {wizardResult.map(s=>(
-                <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
-                  <div style={{display:"flex",gap:12,alignItems:"center",padding:"10px",background:"#f8f9fa",borderRadius:12}}>
-                    <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                      <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                    </div>
-                    <div>
-                      <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
-                      <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+            <div style={{fontSize:13,color:"#aaa",marginBottom:16}}>
+              {wizardResult.length>0?"根據你的條件推薦 3 個景點":"放寬條件後推薦你這些景點"}
             </div>
+            {wizardResult.length===0?(
+              <div style={{textAlign:"center",padding:"20px 0",color:"#bbb"}}>
+                <div style={{fontSize:36,marginBottom:8}}>🏜️</div>
+                <div style={{fontSize:13}}>找不到符合的景點</div>
+              </div>
+            ):(
+              <div style={{display:"grid",gap:10}}>
+                {wizardResult.map(s=>(
+                  <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
+                    <div style={{display:"flex",gap:12,alignItems:"center",padding:"10px",background:"#f8f9fa",borderRadius:12}}>
+                      <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                        <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
+                        <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
             <button onClick={()=>{setWizardStep(0);setWizardAnswers({});setWizardResult([]);}} style={{marginTop:12,width:"100%",padding:"10px",border:"1.5px solid #eee",borderRadius:12,background:"none",fontSize:13,color:"#666",cursor:"pointer"}}>重新推薦</button>
           </div>
         )}
@@ -840,8 +883,8 @@ function ItineraryPanel({itinerary,removeItinerary,onClose,shareItinerary}) {
 // ════════════════════════════════════════
 function Section({title,action,onAction,children}) {
   return (
-    <div style={{margin:"16px 0 0"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0 16px",marginBottom:10}}>
+    <div style={{margin:"14px 0 0",background:"#fff",paddingTop:16,paddingBottom:16}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0 16px",marginBottom:12}}>
         <div style={{fontWeight:800,fontSize:15,color:"#222"}}>{title}</div>
         {action&&<button onClick={onAction} style={{background:"none",border:"none",fontSize:12,color:"#FF6B6B",fontWeight:600,cursor:"pointer"}}>{action} ›</button>}
       </div>
@@ -853,19 +896,47 @@ function Section({title,action,onAction,children}) {
 // ════════════════════════════════════════
 // 底部導航
 // ════════════════════════════════════════
+const NAV_ICONS = {
+  home: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active?"#FF6B6B":"#aaa"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
+  explore: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active?"#FF6B6B":"#aaa"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  ),
+  favorites: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active?"#FF6B6B":"none"} stroke={active?"#FF6B6B":"#aaa"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+    </svg>
+  ),
+  nearby: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active?"#FF6B6B":"#aaa"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+  ),
+  me: (active) => (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active?"#FF6B6B":"#aaa"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+  ),
+};
+
 function BottomNav({tab,setTab,itinerary,setShowItinerary}) {
   const items=[
-    {id:"home",icon:"🏠",label:"首頁"},
-    {id:"explore",icon:"🔍",label:"探索"},
-    {id:"favorites",icon:"❤️",label:"收藏"},
-    {id:"nearby",icon:"📍",label:"附近"},
-    {id:"me",icon:"👤",label:"我的"},
+    {id:"home",  label:"首頁"},
+    {id:"explore",label:"探索"},
+    {id:"favorites",label:"收藏"},
+    {id:"nearby",label:"附近"},
+    {id:"me",    label:"我的"},
   ];
   return (
     <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:"1px solid #f0f0f0",display:"flex",zIndex:999,boxShadow:"0 -4px 20px rgba(0,0,0,0.08)"}}>
       {items.map(item=>(
         <button key={item.id} onClick={()=>setTab(item.id)} style={{flex:1,padding:"8px 4px 10px",border:"none",background:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-          <span style={{fontSize:22}}>{item.icon}</span>
+          {NAV_ICONS[item.id](tab===item.id)}
           <span style={{fontSize:10,fontWeight:tab===item.id?700:400,color:tab===item.id?"#FF6B6B":"#aaa"}}>{item.label}</span>
           {tab===item.id&&<div style={{width:20,height:3,background:"#FF6B6B",borderRadius:2,marginTop:1}}/>}
         </button>
