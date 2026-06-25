@@ -298,7 +298,7 @@ export default function Home() {
         })}} />
       </Head>
 
-      <div style={{minHeight:"100vh",background:"#f8f9fa",fontFamily:"'Noto Sans TC',sans-serif",maxWidth:480,margin:"0 auto",position:"relative",paddingBottom:72}}>
+      <div style={{minHeight:"100vh",background:"#f8f9fa",fontFamily:"'Noto Sans TC',sans-serif",maxWidth:480,margin:"0 auto",position:"relative",paddingBottom:72,overflowX:"hidden"}}>
 
         {/* Toast */}
         {shareToast&&<div style={{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",background:"#2f9e44",color:"#fff",padding:"10px 20px",borderRadius:20,fontSize:13,fontWeight:700,zIndex:9999,whiteSpace:"nowrap",boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>{shareToast}</div>}
@@ -400,34 +400,8 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
       </div>
 
-      {/* ── Hero 大圖 ── */}
-      {hero&&<div style={{margin:"14px 16px 0",position:"relative",borderRadius:20,overflow:"hidden",height:220,cursor:"pointer"}}>
-        <img src={getSpotImage(hero)} alt={hero.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.style.display="none";e.target.parentNode.style.background=`linear-gradient(135deg,${getGradient(hero)})`;}}/>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.05) 55%)"}}>
-          <div style={{position:"absolute",top:14,left:14}}>
-            <span style={{background:"#FF6B6B",color:"#fff",fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20}}>🔥 本週爆紅</span>
-          </div>
-          <div style={{position:"absolute",top:14,right:14}}>
-            <button onClick={e=>{e.stopPropagation();toggleFav(hero.id);}} style={{background:"rgba(255,255,255,0.25)",border:"none",borderRadius:20,width:34,height:34,cursor:"pointer",fontSize:17,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {favSet.has(hero.id)?"❤️":"🤍"}
-            </button>
-          </div>
-          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"18px 16px"}}>
-            <div style={{color:"#fff",fontWeight:800,fontSize:19,marginBottom:6,textShadow:"0 1px 4px rgba(0,0,0,0.4)"}}>{hero.name}</div>
-            <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
-              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>📍 {hero.city}</span>
-              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{hero.type==="indoor"?"❄️ 室內":"🌳 室外"}</span>
-              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{hero.fee}</span>
-            </div>
-            <Link href={`/spot/${encodeURIComponent(hero.name)}`}>
-              <span style={{background:"#FF6B6B",color:"#fff",padding:"9px 22px",borderRadius:22,fontSize:13,fontWeight:700,cursor:"pointer",display:"inline-block"}}>立即看 →</span>
-            </Link>
-          </div>
-        </div>
-        <div style={{position:"absolute",bottom:16,right:16,display:"flex",gap:4}}>
-          {HOT_SPOTS.slice(0,5).map((_,i)=><div key={i} style={{width:i===0?16:6,height:6,borderRadius:3,background:i===0?"#fff":"rgba(255,255,255,0.4)"}}/>)}
-        </div>
-      </div>}
+      {/* ── Hero Carousel ── */}
+      {hero&&<HeroCarousel spots={HOT_SPOTS} favSet={favSet} toggleFav={toggleFav}/>}
 
       {/* ── 情境 Chip 橫向滑動 ── */}
       <div style={{background:"#fff",marginTop:14,paddingTop:14,paddingBottom:6}}>
@@ -445,19 +419,19 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
       <Section title="🗓️ 半天行程靈感" action="更多" onAction={()=>setTab("explore")}>
         <div style={{display:"grid",gap:8,padding:"0 16px"}}>
           {HOT_SPOTS.slice(0,3).map((s,i)=>(
-            <div key={s.id} style={{background:"#fff",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 6px rgba(0,0,0,0.06)"}}>
-              <div style={{fontWeight:800,color:"#FF6B6B",fontSize:16,minWidth:24}}>{["09:30","12:00","14:30"][i]}</div>
-              <div style={{width:40,height:40,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+            <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none",color:"inherit"}}>
+              <div style={{background:"#f8f9fa",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{fontWeight:800,color:"#FF6B6B",fontSize:15,minWidth:44,flexShrink:0}}>{["09:30","12:00","14:30"][i]}</div>
+                <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
+                  <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
+                </div>
+                <span style={{fontSize:13,color:"#FF6B6B",fontWeight:600,flexShrink:0}}>›</span>
               </div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
-                <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
-              </div>
-              <Link href={`/spot/${encodeURIComponent(s.name)}`}>
-                <span style={{fontSize:11,color:"#FF6B6B",fontWeight:600,cursor:"pointer"}}>詳情 ›</span>
-              </Link>
-            </div>
+            </Link>
           ))}
         </div>
       </Section>
@@ -873,6 +847,65 @@ function ItineraryPanel({itinerary,removeItinerary,onClose,shareItinerary}) {
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// Hero Carousel（可滑動、可點擊進內頁）
+// ════════════════════════════════════════
+function HeroCarousel({spots,favSet,toggleFav}) {
+  const [current,setCurrent]=useState(0);
+  const startX=useRef(null);
+
+  const handleTouchStart=e=>{ startX.current=e.touches[0].clientX; };
+  const handleTouchEnd=e=>{
+    if(startX.current===null) return;
+    const diff=startX.current-e.changedTouches[0].clientX;
+    if(Math.abs(diff)>40) {
+      if(diff>0) setCurrent(c=>(c+1)%spots.length);
+      else setCurrent(c=>(c-1+spots.length)%spots.length);
+    }
+    startX.current=null;
+  };
+
+  const s=spots[current];
+  if(!s) return null;
+
+  return (
+    <div style={{margin:"14px 16px 0",borderRadius:20,overflow:"hidden",height:220,position:"relative",userSelect:"none"}}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <Link href={`/spot/${encodeURIComponent(s.name)}`} style={{display:"block",height:"100%",textDecoration:"none"}}>
+        <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+          onError={e=>{e.target.style.display="none";e.target.parentNode.style.background=`linear-gradient(135deg,${getGradient(s)})`;}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.05) 55%)"}}>
+          <div style={{position:"absolute",top:14,left:14}}>
+            <span style={{background:"#FF6B6B",color:"#fff",fontSize:11,fontWeight:700,padding:"4px 12px",borderRadius:20}}>🔥 本週爆紅</span>
+          </div>
+          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"18px 16px"}}>
+            <div style={{color:"#fff",fontWeight:800,fontSize:19,marginBottom:6,textShadow:"0 1px 4px rgba(0,0,0,0.4)"}}>{s.name}</div>
+            <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:12}}>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>📍 {s.city}</span>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{s.type==="indoor"?"❄️ 室內":"🌳 室外"}</span>
+              <span style={{color:"rgba(255,255,255,0.9)",fontSize:12}}>{s.fee}</span>
+            </div>
+            <span style={{background:"#FF6B6B",color:"#fff",padding:"9px 22px",borderRadius:22,fontSize:13,fontWeight:700,display:"inline-block"}}>立即看 →</span>
+          </div>
+        </div>
+      </Link>
+      {/* 收藏按鈕（阻止冒泡避免觸發 Link） */}
+      <button
+        onClick={e=>{e.preventDefault();e.stopPropagation();toggleFav(s.id);}}
+        style={{position:"absolute",top:14,right:14,background:"rgba(255,255,255,0.25)",border:"none",borderRadius:20,width:34,height:34,cursor:"pointer",fontSize:17,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:10}}
+      >{favSet.has(s.id)?"❤️":"🤍"}</button>
+      {/* 圓點指示器 */}
+      <div style={{position:"absolute",bottom:16,right:16,display:"flex",gap:4,zIndex:10}}>
+        {spots.map((_,i)=>(
+          <div key={i} onClick={e=>{e.preventDefault();setCurrent(i);}} style={{width:i===current?16:6,height:6,borderRadius:3,background:i===current?"#fff":"rgba(255,255,255,0.45)",cursor:"pointer",transition:"width 0.2s"}}/>
+        ))}
       </div>
     </div>
   );
