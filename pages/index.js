@@ -413,7 +413,9 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           {HOT_SPOTS.slice(0,3).map((s,i)=>(
             <div key={s.id} style={{background:"#fff",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 6px rgba(0,0,0,0.06)"}}>
               <div style={{fontWeight:800,color:"#FF6B6B",fontSize:16,minWidth:24}}>{["09:30","12:00","14:30"][i]}</div>
-              <div style={{width:40,height:40,borderRadius:12,background:`linear-gradient(135deg,${getGradient(s)})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{s.emoji}</div>
+              <div style={{width:40,height:40,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+              </div>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
                 <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
@@ -469,7 +471,9 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           {SPOTS.filter(s=>s.tags.includes(seasonInfo.tag)).slice(0,8).map(s=>(
             <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none",flexShrink:0}}>
               <div style={{width:120,borderRadius:14,overflow:"hidden",background:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.07)"}}>
-                <div style={{height:80,background:`linear-gradient(135deg,${getGradient(s)})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32}}>{s.emoji}</div>
+                <div style={{height:80,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                </div>
                 <div style={{padding:"8px 10px"}}>
                   <div style={{fontWeight:700,fontSize:12,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
                   <div style={{fontSize:10,color:"#999",marginTop:2}}>{s.city} · {s.fee}</div>
@@ -535,7 +539,9 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
               {wizardResult.map(s=>(
                 <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
                   <div style={{display:"flex",gap:12,alignItems:"center",padding:"10px",background:"#f8f9fa",borderRadius:12}}>
-                    <div style={{width:44,height:44,borderRadius:12,background:`linear-gradient(135deg,${getGradient(s)})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{s.emoji}</div>
+                    <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                      <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                    </div>
                     <div>
                       <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
                       <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
@@ -654,7 +660,9 @@ function NearbyPage({nearbyList,gpsCoords,gpsLoading,findNearby,favSet,toggleFav
         {nearbyList.map(spot=>(
           <div key={spot.id} style={{background:"#fff",borderRadius:16,padding:14,boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:"1px solid #f0e6d3"}}>
             <div style={{display:"flex",gap:10,alignItems:"center"}}>
-              <div style={{width:50,height:50,borderRadius:14,background:`linear-gradient(135deg,${getGradient(spot)})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{spot.emoji}</div>
+              <div style={{width:56,height:56,borderRadius:14,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(spot)})`}}>
+                <img src={getSpotImage(spot)} alt={spot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+              </div>
               <div style={{flex:1}}>
                 <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none"}}>
                   <div style={{fontWeight:700,fontSize:15,color:"#222"}}>{spot.name}</div>
@@ -726,16 +734,24 @@ function SpotCard({spot,isFav,isVisited,inItinerary,onFav,onVisit,onAddItinerary
   return (
     <div style={{background:"#fff",borderRadius:16,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:isVisited?"1.5px solid #b2f2bb":"1.5px solid #f0f0f0"}}>
       {/* 圖片區 */}
-      <div style={{height:120,background:`linear-gradient(135deg,${getGradient(spot)})`,position:"relative",display:"flex",alignItems:"center",justifyContent:"center",fontSize:48}}>
-        {spot.emoji}
-        {isVisited&&<div style={{position:"absolute",top:10,right:10,background:"#40c057",color:"#fff",fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:10}}>✅ 去過了</div>}
-        <button onClick={onFav} style={{position:"absolute",top:10,left:10,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:20,width:32,height:32,cursor:"pointer",fontSize:16,backdropFilter:"blur(4px)"}}>
+      <div style={{height:140,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(spot)})`}}>
+        <img
+          src={getSpotImage(spot)}
+          alt={spot.name}
+          style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
+          onError={e=>{e.target.style.display="none";}}
+          loading="lazy"
+        />
+        {isVisited&&<div style={{position:"absolute",top:10,right:10,background:"#40c057",color:"#fff",fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:10,zIndex:1}}>✅ 去過了</div>}
+        <button onClick={onFav} style={{position:"absolute",top:10,left:10,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:20,width:32,height:32,cursor:"pointer",fontSize:16,backdropFilter:"blur(4px)",zIndex:1}}>
           {isFav?"❤️":"🤍"}
         </button>
-        <div style={{position:"absolute",bottom:10,right:10,display:"flex",gap:6}}>
-          <span style={{background:"rgba(0,0,0,0.4)",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10,backdropFilter:"blur(4px)"}}>{spot.type==="indoor"?"❄️ 室內":"🌳 戶外"}</span>
+        <div style={{position:"absolute",bottom:10,right:10,display:"flex",gap:6,zIndex:1}}>
+          <span style={{background:"rgba(0,0,0,0.45)",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10,backdropFilter:"blur(4px)"}}>{spot.type==="indoor"?"❄️ 室內":"🌳 戶外"}</span>
           <span style={{background:feeColor+"cc",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10}}>{spot.fee}</span>
         </div>
+        {/* emoji 浮在圖片上 */}
+        <div style={{position:"absolute",bottom:10,left:12,fontSize:24,zIndex:1}}>{spot.emoji}</div>
       </div>
       {/* 內容區 */}
       <div style={{padding:"12px 14px"}}>
@@ -797,7 +813,9 @@ function ItineraryPanel({itinerary,removeItinerary,onClose,shareItinerary}) {
               {itinerary.map((s,i)=>(
                 <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,background:"#f8f9fa",borderRadius:12,padding:"10px 12px"}}>
                   <span style={{fontWeight:800,color:"#FF6B6B",fontSize:14,minWidth:20}}>{i+1}</span>
-                  <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${getGradient(s)})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{s.emoji}</div>
+                  <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                    <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                  </div>
                   <div style={{flex:1}}>
                     <div style={{fontWeight:700,fontSize:13}}>{s.name}</div>
                     <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>

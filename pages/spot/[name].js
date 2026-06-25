@@ -121,15 +121,30 @@ export default function SpotPage({ spot, related }) {
       <div style={{ minHeight:"100vh", background:"linear-gradient(160deg,#fff8f0 0%,#f0f8ff 100%)", fontFamily:"'Noto Sans TC',sans-serif" }}>
 
         {/* Header */}
-        <div style={{ background:"linear-gradient(135deg,#ff6b6b,#ffa94d)", padding:"14px 16px", boxShadow:"0 4px 20px rgba(255,107,107,0.3)" }}>
-          <Link href="/" style={{ color:"rgba(255,255,255,0.85)", textDecoration:"none", fontSize:13, display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
-            ← 回首頁
-          </Link>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:52, height:52, borderRadius:14, background:"rgba(255,255,255,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0 }}>{spot.emoji}</div>
-            <div>
-              <h1 style={{ color:"#fff", fontWeight:900, fontSize:20, margin:0, lineHeight:1.2 }}>{spot.name}</h1>
-              <div style={{ color:"rgba(255,255,255,0.85)", fontSize:12, marginTop:3 }}>📍 {spot.city} · {spot.district}</div>
+        <div style={{background:`linear-gradient(135deg,#ff6b6b,#ffa94d)`,position:"relative",overflow:"hidden"}}>
+          <img
+            src={`https://source.unsplash.com/600x300/?${(spot.tags.map(t=>({
+              "遊樂園":"amusement+park","動物":"zoo,animals","自然":"nature,taiwan",
+              "購物":"shopping,mall","老街":"old+street,taiwan","美食":"food,taiwan",
+              "教育":"museum,children","步道":"hiking,trail","農場":"farm,animals",
+              "夜市":"night+market,taiwan","海灘":"beach,ocean","溫泉":"hot+spring",
+              "藝術":"art,gallery","歷史":"historic,temple","科學":"science,museum",
+              "戲水":"water+park,swimming","文化":"culture,taiwan","海洋":"aquarium,ocean",
+            }[t]))).find(Boolean)||"taiwan,travel"}&sig=${spot.id}`}
+            alt={spot.name}
+            style={{width:"100%",height:200,objectFit:"cover",display:"block",opacity:0.7}}
+            onError={e=>{e.target.style.display="none";}}
+          />
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0.1) 60%)",padding:"14px 16px",display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
+            <Link href="/" style={{color:"rgba(255,255,255,0.9)",textDecoration:"none",fontSize:13,display:"flex",alignItems:"center",gap:6}}>
+              ← 回首頁
+            </Link>
+            <div style={{display:"flex",alignItems:"flex-end",gap:12}}>
+              <div style={{fontSize:36}}>{spot.emoji}</div>
+              <div>
+                <h1 style={{color:"#fff",fontWeight:900,fontSize:20,margin:0,lineHeight:1.2,textShadow:"0 1px 4px rgba(0,0,0,0.3)"}}>{spot.name}</h1>
+                <div style={{color:"rgba(255,255,255,0.9)",fontSize:12,marginTop:4}}>📍 {spot.city} · {spot.district}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -217,7 +232,14 @@ export default function SpotPage({ spot, related }) {
                 {related.map(s => (
                   <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{ textDecoration:"none" }}>
                     <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", display:"flex", alignItems:"center", gap:10, boxShadow:"0 2px 8px rgba(0,0,0,0.05)", border:"1px solid #f0e6d3" }}>
-                      <span style={{ fontSize:20 }}>{s.emoji}</span>
+                  <div style={{width:48,height:48,borderRadius:12,overflow:"hidden",flexShrink:0,background:"#f0f0f0"}}>
+                    <img
+                      src={`https://source.unsplash.com/100x100/?${s.tags[0]||"taiwan"}&sig=${s.id}`}
+                      alt={s.name}
+                      style={{width:"100%",height:"100%",objectFit:"cover"}}
+                      onError={e=>{e.target.style.display="none";e.target.parentNode.style.display="flex";e.target.parentNode.style.alignItems="center";e.target.parentNode.style.justifyContent="center";e.target.parentNode.innerHTML=s.emoji;}}
+                    />
+                  </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:13, fontWeight:700, color:"#222" }}>{s.name}</div>
                         <div style={{ fontSize:11, color:"#999" }}>{s.type==="indoor"?"🏠 室內":"🌳 室外"} · {s.fee}</div>
