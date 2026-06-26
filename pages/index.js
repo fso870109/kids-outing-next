@@ -466,7 +466,56 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
       </div>
 
-      {/* ── 情境懶人包 ── */}
+      {/* ── 今日推薦區塊（第一層：立刻給答案）── */}
+      {todayRecs.map((block, bi) => (
+        <Section key={bi} title={block.title} action="更多" onAction={()=>setTab("explore")}>
+          <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>{block.subtitle}</div>
+          <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
+            {block.spots.map(s=>(
+              <div key={s.id} style={{flexShrink:0,width:150,borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+                <div style={{height:100,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                  <button onClick={()=>toggleFav(s.id)} style={{position:"absolute",top:6,right:6,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:14,width:28,height:28,cursor:"pointer",fontSize:14,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    {favSet.has(s.id)?"❤️":"🤍"}
+                  </button>
+                  <div style={{position:"absolute",bottom:6,left:8}}>
+                    <span style={{background:s.fee==="免費"?"#40c057":"#ffa94d",color:"#fff",fontSize:10,padding:"1px 6px",borderRadius:8,fontWeight:700}}>{s.fee}</span>
+                  </div>
+                </div>
+                <Link href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
+                  <div style={{padding:"8px 10px 10px"}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
+                    <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </Section>
+      ))}
+
+      {/* ── 半天行程靈感（第一層延伸）── */}
+      <Section title="🗓️ 半天行程靈感" action="更多" onAction={()=>setTab("explore")}>
+        <div style={{display:"grid",gap:8,padding:"0 16px"}}>
+          {HOT_SPOTS.slice(0,3).map((s,i)=>(
+            <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none",color:"inherit"}}>
+              <div style={{background:"#f8f9fa",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{fontWeight:800,color:"#FF6B6B",fontSize:15,minWidth:44,flexShrink:0}}>{["09:30","12:00","14:30"][i]}</div>
+                <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
+                  <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
+                </div>
+                <span style={{fontSize:13,color:"#FF6B6B",fontWeight:600,flexShrink:0}}>›</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── 情境懶人包（第二層：今日推薦不滿意往下找）── */}
       <Section title="🎯 極端情境懶人包" action="">
         <div style={{display:"grid",gap:10,padding:"0 16px"}}>
           {[
@@ -504,7 +553,6 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
             const spots = SPOTS.filter(pack.filter).sort(()=>Math.random()-0.5).slice(0,3);
             return (
               <div key={i} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
-                {/* 標題區 */}
                 <div style={{background:pack.color,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:28}}>{pack.icon}</span>
                   <div>
@@ -512,7 +560,6 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
                     <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{pack.desc}</div>
                   </div>
                 </div>
-                {/* 景點預覽 */}
                 <div style={{background:"#fff",padding:"10px 12px"}}>
                   {spots.length === 0 ? (
                     <div style={{color:"#bbb",fontSize:12,textAlign:"center",padding:"8px 0"}}>暫無符合景點</div>
@@ -548,55 +595,68 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           })}
         </div>
       </Section>
-      {todayRecs.map((block, bi) => (
-        <Section key={bi} title={block.title} action="更多" onAction={()=>setTab("explore")}>
-          <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>{block.subtitle}</div>
-          <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
-            {block.spots.map(s=>(
-              <div key={s.id} style={{flexShrink:0,width:150,borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
-                <div style={{height:100,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                  <button onClick={()=>toggleFav(s.id)} style={{position:"absolute",top:6,right:6,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:14,width:28,height:28,cursor:"pointer",fontSize:14,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    {favSet.has(s.id)?"❤️":"🤍"}
-                  </button>
-                  <div style={{position:"absolute",bottom:6,left:8}}>
-                    <span style={{background:s.fee==="免費"?"#40c057":"#ffa94d",color:"#fff",fontSize:10,padding:"1px 6px",borderRadius:8,fontWeight:700}}>{s.fee}</span>
-                  </div>
-                </div>
-                <Link href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
-                  <div style={{padding:"8px 10px 10px"}}>
-                    <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
-                    <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
-                  </div>
-                </Link>
-              </div>
-            ))}
+
+      {/* ── 不知道去哪巫師（第三層：最後防線）── */}
+      <div style={{margin:"8px 16px 0"}}>
+        {wizardStep===0&&(
+          <div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",borderRadius:20,padding:"20px",textAlign:"center"}}>
+            <div style={{fontSize:32,marginBottom:8}}>🤷</div>
+            <div style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:4}}>還是不知道去哪？</div>
+            <div style={{color:"rgba(255,255,255,0.85)",fontSize:13,marginBottom:16}}>回答幾個問題，讓我幫你挑！</div>
+            <button onClick={()=>setWizardStep(1)} style={{background:"#fff",color:"#667eea",border:"none",borderRadius:20,padding:"10px 28px",fontSize:14,fontWeight:700,cursor:"pointer"}}>幫我推薦 →</button>
           </div>
-        </Section>
-      ))}
-
-      {/* ── 半天行程靈感 ── */}
-      <Section title="🗓️ 半天行程靈感" action="更多" onAction={()=>setTab("explore")}>
-        <div style={{display:"grid",gap:8,padding:"0 16px"}}>
-          {HOT_SPOTS.slice(0,3).map((s,i)=>(
-            <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none",color:"inherit"}}>
-              <div style={{background:"#f8f9fa",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
-                <div style={{fontWeight:800,color:"#FF6B6B",fontSize:15,minWidth:44,flexShrink:0}}>{["09:30","12:00","14:30"][i]}</div>
-                <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:700,fontSize:14,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
-                  <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
-                </div>
-                <span style={{fontSize:13,color:"#FF6B6B",fontWeight:600,flexShrink:0}}>›</span>
+        )}
+        {wizardStep>0&&wizardStep<99&&(
+          <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
+            <div style={{fontSize:12,color:"#aaa",marginBottom:4}}>問題 {wizardStep}/{WIZARD.length}</div>
+            <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:16}}>{WIZARD[wizardStep-1].q}</div>
+            <div style={{display:"grid",gridTemplateColumns:WIZARD[wizardStep-1].opts.length>4?"1fr 1fr 1fr":"1fr 1fr",gap:8}}>
+              {WIZARD[wizardStep-1].opts.map(opt=>{
+                const key=WIZARD[wizardStep-1].key;
+                return (
+                  <button key={opt.val} onClick={()=>{
+                    const ans={...wizardAnswers,[key]:opt.val};
+                    setWizardAnswers(ans);
+                    if(wizardStep===WIZARD.length) runWizard(ans);
+                    else setWizardStep(wizardStep+1);
+                  }} style={{padding:"12px 8px",borderRadius:12,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:13,fontWeight:600,cursor:"pointer",color:"#333",textAlign:"center"}}>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={()=>{setWizardStep(0);setWizardAnswers({});}} style={{marginTop:12,background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer"}}>← 重新來過</button>
+          </div>
+        )}
+        {wizardStep===99&&(
+          <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
+            <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:4}}>🎉 幫你找到了！</div>
+            <div style={{fontSize:13,color:"#aaa",marginBottom:16}}>{wizardResult.length>0?"根據你的條件推薦 3 個景點":"放寬條件後推薦你這些景點"}</div>
+            {wizardResult.length===0?(
+              <div style={{textAlign:"center",padding:"20px 0",color:"#bbb"}}><div style={{fontSize:36,marginBottom:8}}>🏜️</div><div style={{fontSize:13}}>找不到符合的景點</div></div>
+            ):(
+              <div style={{display:"grid",gap:10}}>
+                {wizardResult.map(s=>(
+                  <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
+                    <div style={{display:"flex",gap:12,alignItems:"center",padding:"10px",background:"#f8f9fa",borderRadius:12}}>
+                      <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                        <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                      </div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
+                        <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </Link>
-          ))}
-        </div>
-      </Section>
+            )}
+            <button onClick={()=>{setWizardStep(0);setWizardAnswers({});setWizardResult([]);}} style={{marginTop:12,width:"100%",padding:"10px",border:"1.5px solid #eee",borderRadius:12,background:"none",fontSize:13,color:"#666",cursor:"pointer"}}>重新推薦</button>
+          </div>
+        )}
+      </div>
 
-      {/* ── 熱門排行 ── */}
+      {/* ── 熱門排行（第四層：自己慢慢瀏覽）── */}
       <Section title="🔥 本週熱門 TOP 5" action="查看全部" onAction={()=>setTab("explore")}>
         <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
           {HOT_SPOTS.map((s,i)=>(
