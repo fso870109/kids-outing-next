@@ -315,6 +315,7 @@ export default function Home() {
           wizardAnswers={wizardAnswers} setWizardAnswers={setWizardAnswers}
           wizardResult={wizardResult} runWizard={runWizard} WIZARD={WIZARD}
           setActiveChip={setActiveChip} setSearch={setSearch}
+          setActiveCity={setActiveCity}
         />}
 
         {/* ── 探索 ── */}
@@ -366,7 +367,7 @@ export default function Home() {
 // ════════════════════════════════════════
 // 首頁
 // ════════════════════════════════════════
-function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary,showItinerary,setShowItinerary,removeItinerary,shareList,setTab,findNearby,gpsLoading,season,seasonInfo,wizardStep,setWizardStep,wizardAnswers,setWizardAnswers,wizardResult,runWizard,WIZARD,setActiveChip,setSearch}) {
+function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary,showItinerary,setShowItinerary,removeItinerary,shareList,setTab,findNearby,gpsLoading,season,seasonInfo,wizardStep,setWizardStep,wizardAnswers,setWizardAnswers,wizardResult,runWizard,WIZARD,setActiveChip,setSearch,setActiveCity}) {
   const hero = HOT_SPOTS[0];
   const dayParts = ["early","morning","afternoon","evening"];
   const hour = new Date().getHours();
@@ -501,7 +502,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           {CITIES.filter(c=>c!=="全部").map(city=>{
             const icons={"台北":"🏙️","新北":"🌆","桃園":"✈️","台中":"🎨","台南":"🏯","高雄":"🚢","宜蘭":"🌊","花蓮":"🏔️","台東":"🎈","屏東":"🏖️","嘉義市":"🌲","嘉義縣":"☕","雲林":"🌾","彰化":"🚂","南投":"🍁","苗栗":"🍓","新竹市":"🍢","新竹縣":"🌿","澎湖":"🐠","金門":"🥃","連江縣":"✨","基隆":"⚓"};
             return (
-              <button key={city} onClick={()=>{setTab("explore");}} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"10px 12px",borderRadius:14,border:"1.5px solid #eee",background:"#fff",cursor:"pointer",minWidth:64}}>
+              <button key={city} onClick={()=>{ setActiveCity(city); setTab("explore"); }} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"10px 12px",borderRadius:14,border:"1.5px solid #eee",background:"#fff",cursor:"pointer",minWidth:64}}>
                 <span style={{fontSize:24}}>{icons[city]||"📍"}</span>
                 <span style={{fontSize:11,color:"#555",fontWeight:600}}>{city}</span>
               </button>
