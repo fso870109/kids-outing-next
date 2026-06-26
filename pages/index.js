@@ -359,7 +359,7 @@ export default function Home() {
         }}/>}
 
         {/* ── 底部導航 ── */}
-        <BottomNav tab={tab} setTab={t=>{if(t==="nearby")findNearby();else setTab(t);}} itinerary={itinerary} setShowItinerary={setShowItinerary}/>
+        <BottomNav tab={tab} setTab={t=>{if(t==="nearby")findNearby();else{setTab(t);window.scrollTo({top:0,behavior:"instant"});} }} itinerary={itinerary} setShowItinerary={setShowItinerary}/>
       </div>
     </>
   );
@@ -446,7 +446,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
         <div style={{position:"relative"}}>
           <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",fontSize:16,pointerEvents:"none"}}>🔍</span>
-          <input placeholder="今天想帶孩子去哪玩？" onClick={()=>setTab("explore")} readOnly
+          <input placeholder="今天想帶孩子去哪玩？" onClick={()=>{setTab("explore");window.scrollTo({top:0,behavior:"instant"});}} readOnly
             style={{width:"100%",padding:"12px 14px 12px 40px",borderRadius:14,border:"1.5px solid #eee",fontSize:14,background:"#f8f9fa",outline:"none",cursor:"pointer",color:"#999",WebkitAppearance:"none"}}/>
         </div>
       </div>
@@ -458,7 +458,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
       <div style={{background:"#fff",marginTop:14,paddingTop:14,paddingBottom:6}}>
         <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
           {CHIPS.map(chip=>(
-            <button key={chip.id} onClick={()=>{setActiveChip(chip.id);setTab("explore");}} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 16px",borderRadius:16,border:"1.5px solid #f0f0f0",background:"#fafafa",cursor:"pointer",minWidth:70,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
+            <button key={chip.id} onClick={()=>{setActiveChip(chip.id);setTab("explore");window.scrollTo({top:0,behavior:"instant"});}} style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:6,padding:"12px 16px",borderRadius:16,border:"1.5px solid #f0f0f0",background:"#fafafa",cursor:"pointer",minWidth:70,boxShadow:"0 1px 4px rgba(0,0,0,0.04)"}}>
               <span style={{fontSize:24}}>{chip.icon}</span>
               <span style={{fontSize:11,color:"#555",fontWeight:600,whiteSpace:"nowrap"}}>{chip.label}</span>
             </button>
@@ -544,7 +544,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
             {label:"6–8歲",icon:"🦖",color:"#E8F5E9",chip:"age68"},
             {label:"9–12歲",icon:"🏄",color:"#E3F2FD",chip:"age912"},
           ].map(a=>(
-            <button key={a.chip} onClick={()=>{setActiveChip(a.chip);setTab("explore");}} style={{background:a.color,border:"none",borderRadius:14,padding:"12px 4px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+            <button key={a.chip} onClick={()=>{setActiveChip(a.chip);setTab("explore");window.scrollTo({top:0,behavior:"instant"});}} style={{background:a.color,border:"none",borderRadius:14,padding:"12px 4px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
               <span style={{fontSize:24}}>{a.icon}</span>
               <span style={{fontSize:12,fontWeight:700,color:"#333"}}>{a.label}</span>
             </button>
