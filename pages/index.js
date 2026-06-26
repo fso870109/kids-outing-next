@@ -517,6 +517,19 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
 
       {/* ── 情境懶人包（第二層：今日推薦不滿意往下找）── */}
       <Section title="🎯 極端情境懶人包" action="">
+        {/* 地區說明 */}
+        {(()=>{
+          const nearRegion = gpsCoords ? REGIONS.find(r=>r.cities.includes(
+            SPOTS.filter(s=>s.lat&&s.lng)
+              .map(s=>({city:s.city,d:Math.abs(s.lat-gpsCoords.lat)+Math.abs(s.lng-gpsCoords.lng)}))
+              .sort((a,b)=>a.d-b.d)[0]?.city
+          )) : null;
+          return nearRegion ? (
+            <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>
+              📍 根據你的位置推薦 <b style={{color:"#FF6B6B"}}>{nearRegion.label}</b> 的景點
+            </div>
+          ) : null;
+        })()}
         <div style={{display:"grid",gap:10,padding:"0 16px"}}>
           {[
             {
@@ -524,35 +537,58 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
               desc:"有安全圍欄、工作人員看顧、家長可以坐著放空",
               color:"linear-gradient(135deg,#ff6b6b,#ffa94d)",
               filter: s => s.type==="indoor" && s.tags.some(t=>["遊樂園","親子","教育"].includes(t)),
+              chip:"rainy",
             },
             {
               icon:"🌿", title:"低成本高回報放電區",
               desc:"免門票、大草皮、可以野餐跑跳一整天",
               color:"linear-gradient(135deg,#40c057,#69db7c)",
               filter: s => s.fee==="免費" && s.type==="outdoor" && s.tags.some(t=>["公園","自然","散步","步道"].includes(t)),
+              chip:"free",
             },
             {
               icon:"🌧️", title:"全台雨神同行備案",
               desc:"下雨天專用，觀光工廠、博物館、室內體育場",
               color:"linear-gradient(135deg,#4dabf7,#339af0)",
               filter: s => s.type==="indoor" && s.tags.some(t=>["教育","歷史","科學","藝術","文化"].includes(t)),
+              chip:"rainy",
             },
             {
               icon:"💰", title:"小資家庭高CP值精選",
               desc:"門票200元以下，玩超過3小時，評價超好",
               color:"linear-gradient(135deg,#ffd43b,#fcc419)",
               filter: s => s.fee==="免費" || (s.fee==="付費" && s.duration && s.duration.includes("4")),
+              chip:"free",
             },
             {
               icon:"🚀", title:"半天快閃不塞車",
               desc:"停車容易、1–2小時玩完、親子都開心",
               color:"linear-gradient(135deg,#9775fa,#7950f2)",
-              filter: s => s.parking==="容易" && s.duration && (s.duration.includes("1") || s.duration.includes("2")),
+              filter: s => s.parking==="好停車" && s.duration && (s.duration.includes("1") || s.duration.includes("2")),
+              chip:"park",
             },
-          ].map((pack, i) => {
-            const spots = SPOTS.filter(pack.filter).sort(()=>Math.random()-0.5).slice(0,3);
+          ].map((pack) => {
+            // 找最近地區
+            let nearCities = null;
+            if (gpsCoords) {
+              const nearestCity = SPOTS.filter(s=>s.lat&&s.lng)
+                .map(s=>({city:s.city, d:Math.abs(s.lat-gpsCoords.lat)+Math.abs(s.lng-gpsCoords.lng)}))
+                .sort((a,b)=>a.d-b.d)[0]?.city;
+              const nearRegion = REGIONS.find(r=>r.cities.includes(nearestCity));
+              if (nearRegion) nearCities = nearRegion.cities;
+            }
+
+            // 先抓附近地區，不夠再補全台
+            let spots = SPOTS.filter(s => pack.filter(s) && (!nearCities || nearCities.includes(s.city)))
+              .sort(()=>Math.random()-0.5).slice(0,3);
+            if (spots.length < 3) {
+              const extra = SPOTS.filter(s => pack.filter(s) && !spots.find(x=>x.id===s.id))
+                .sort(()=>Math.random()-0.5).slice(0, 3-spots.length);
+              spots = [...spots, ...extra];
+            }
+
             return (
-              <div key={i} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
+              <div key={pack.title} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
                 <div style={{background:pack.color,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
                   <span style={{fontSize:28}}>{pack.icon}</span>
                   <div>
@@ -582,8 +618,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
                     </div>
                   )}
                   <button onClick={()=>{
-                    const chip = ["age35","rainy","rainy","free","park"][i];
-                    setActiveChip(chip);
+                    setActiveChip(pack.chip);
                     setTab("explore");
                     window.scrollTo({top:0,behavior:"instant"});
                   }} style={{width:"100%",marginTop:8,padding:"8px",borderRadius:10,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:12,color:"#666",fontWeight:600,cursor:"pointer"}}>
@@ -1086,7 +1121,7 @@ function SpotCard({spot,isFav,isVisited,inItinerary,onFav,onVisit,onAddItinerary
             {spot.rain===true||spot.rain==="true"
               ?<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#e7f5ff",color:"#1971c2",fontWeight:600}}>☔ 雨天OK</span>
               :<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#fff9db",color:"#e67700",fontWeight:600}}>☀️ 晴天佳</span>}
-            {spot.parking&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#ebfbee",color:"#2f9e44",fontWeight:600}}>🚗 停車{spot.parking}</span>}
+            {spot.parking&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#ebfbee",color:"#2f9e44",fontWeight:600}}>🚗 停車 {spot.parking}</span>}
           </div>
           {/* 標籤 */}
           <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
