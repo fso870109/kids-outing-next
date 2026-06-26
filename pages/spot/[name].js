@@ -1,8 +1,15 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import SPOTS from "../../data/spots";
 
 const DAY_MAP = {"週日":0,"週一":1,"週二":2,"週三":3,"週四":4,"週五":5,"週六":6};
+
+function getDistance(lat1,lon1,lat2,lon2) {
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
 
 function isTodayClosed(closed) {
   if (!closed || closed === "無公休") return false;
@@ -39,6 +46,184 @@ export async function getStaticProps({ params }) {
   const spot = SPOTS.find(s => s.name === name) || null;
   const related = spot ? SPOTS.filter(s => s.city === spot.city && s.id !== spot.id).slice(0, 6) : [];
   return { props: { spot, related } };
+}
+
+// ── 比較功能 ──
+const COMPARE_KEY = "kids-compare";
+function CompareBar({ spot }) {
+  const [compareList, setCompareList] = useState([]);
+  const [showPanel, setShowPanel] = useState(false);
+  const [gps, setGps] = useState(null);
+
+  useEffect(() => {
+    try { setCompareList(JSON.parse(localStorage.getItem(COMPARE_KEY)||"[]")); } catch{}
+    navigator.geolocation?.getCurrentPosition(p=>setGps({lat:p.coords.latitude,lng:p.coords.longitude}));
+  }, []);
+
+  const inCompare = compareList.some(s=>s.id===spot.id);
+
+  const toggle = () => {
+    let next;
+    if (inCompare) {
+      next = compareList.filter(s=>s.id!==spot.id);
+    } else {
+      if (compareList.length >= 3) { alert("最多比較 3 個景點"); return; }
+      next = [...compareList, spot];
+    }
+    setCompareList(next);
+    try { localStorage.setItem(COMPARE_KEY, JSON.stringify(next)); } catch{}
+  };
+
+  const scoreLabels = {
+    stamina:  ["輕鬆","稍累","普通","費力","高強度"],
+    comfort:  ["辛苦","還好","普通","舒適","超舒適"],
+    budget:   ["昂貴","偏貴","普通","實惠","免費"],
+    facility: ["很少","少","普通","豐富","超豐富"],
+    traffic:  ["困難","稍難","普通","方便","超方便"],
+  };
+  const scoreIcons = { stamina:"💪", comfort:"😌", budget:"💰", facility:"🎡", traffic:"🚗" };
+  const scoreNames = { stamina:"體力消耗", comfort:"家長舒適", budget:"預算親民", facility:"設施豐富", traffic:"交通便利" };
+
+  return (
+    <>
+      {/* 加入比較按鈕 */}
+      <div style={{ margin:"0 0 12px", display:"flex", gap:8 }}>
+        <button onClick={toggle} style={{ flex:1, padding:"10px", borderRadius:12, border:`1.5px solid ${inCompare?"#FF6B6B":"#eee"}`, background:inCompare?"#fff5f5":"#f8f9fa", color:inCompare?"#FF6B6B":"#666", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+          {inCompare?"✓ 已加入比較":"⚖️ 加入比較"}
+        </button>
+        {compareList.length >= 2 && (
+          <button onClick={()=>setShowPanel(true)} style={{ flex:1, padding:"10px", borderRadius:12, border:"none", background:"linear-gradient(135deg,#FF6B6B,#ffa94d)", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+            比較 {compareList.length} 個景點 →
+          </button>
+        )}
+      </div>
+
+      {/* 比較面板 */}
+      {showPanel && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:1000, overflowY:"auto" }} onClick={()=>setShowPanel(false)}>
+          <div style={{ background:"#fff", borderRadius:"20px 20px 0 0", position:"absolute", bottom:0, left:0, right:0, maxHeight:"85vh", overflowY:"auto", padding:"20px 16px 40px" }} onClick={e=>e.stopPropagation()}>
+            <div style={{ width:40, height:4, background:"#eee", borderRadius:2, margin:"0 auto 16px" }}/>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+              <div style={{ fontWeight:800, fontSize:16 }}>⚖️ 景點比較</div>
+              <button onClick={()=>setShowPanel(false)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:"#aaa" }}>×</button>
+            </div>
+
+            {/* 景點名稱列 */}
+            <div style={{ display:"grid", gridTemplateColumns:`repeat(${compareList.length},1fr)`, gap:8, marginBottom:16 }}>
+              {compareList.map(s=>(
+                <div key={s.id} style={{ textAlign:"center", padding:"10px 6px", background:"#f8f9fa", borderRadius:12 }}>
+                  <div style={{ fontSize:22, marginBottom:4 }}>{s.emoji}</div>
+                  <div style={{ fontWeight:700, fontSize:12, color:"#222", lineHeight:1.3 }}>{s.name}</div>
+                  <div style={{ fontSize:10, color:"#999", marginTop:2 }}>{s.city}</div>
+                  {gps && s.lat && s.lng && (
+                    <div style={{ fontSize:10, color:"#FF6B6B", fontWeight:700, marginTop:2 }}>
+                      📍 {getDistance(gps.lat,gps.lng,s.lat,s.lng).toFixed(1)} km
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* 基本資訊比較 */}
+            {[
+              { label:"費用", get: s=>s.fee },
+              { label:"適合年齡", get: s=>s.age },
+              { label:"停留時間", get: s=>s.duration||"—" },
+              { label:"雨天", get: s=>(s.rain===true||s.rain==="true")?"☔ 適合":"☀️ 晴天佳" },
+              { label:"停車", get: s=>`🚗 ${s.parking||"—"}` },
+              { label:"類型", get: s=>s.type==="indoor"?"❄️ 室內":"🌳 戶外" },
+            ].map(row=>(
+              <div key={row.label} style={{ display:"grid", gridTemplateColumns:`80px repeat(${compareList.length},1fr)`, gap:6, marginBottom:8, alignItems:"center" }}>
+                <div style={{ fontSize:11, color:"#999", fontWeight:600 }}>{row.label}</div>
+                {compareList.map(s=>(
+                  <div key={s.id} style={{ fontSize:12, color:"#333", fontWeight:600, textAlign:"center", padding:"6px 4px", background:"#f8f9fa", borderRadius:8 }}>{row.get(s)}</div>
+                ))}
+              </div>
+            ))}
+
+            {/* 評分比較 */}
+            {compareList[0]?.scores && (
+              <>
+                <div style={{ fontWeight:700, fontSize:13, color:"#333", margin:"16px 0 10px" }}>📊 評分比較</div>
+                {Object.keys(scoreNames).map(key=>(
+                  <div key={key} style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:11, color:"#666", marginBottom:4 }}>{scoreIcons[key]} {scoreNames[key]}</div>
+                    <div style={{ display:"grid", gridTemplateColumns:`repeat(${compareList.length},1fr)`, gap:6 }}>
+                      {compareList.map(s=>{
+                        const val = s.scores?.[key] || 1;
+                        const isMax = Math.max(...compareList.map(x=>x.scores?.[key]||1)) === val;
+                        return (
+                          <div key={s.id} style={{ textAlign:"center" }}>
+                            <div style={{ height:6, borderRadius:3, background:isMax?"#FF6B6B":"#eee", overflow:"hidden", marginBottom:3 }}>
+                              <div style={{ height:"100%", width:`${val*20}%`, background:isMax?"linear-gradient(90deg,#FF6B6B,#ffa94d)":"#ddd", borderRadius:3 }}/>
+                            </div>
+                            <div style={{ fontSize:10, color:isMax?"#FF6B6B":"#999", fontWeight:isMax?700:400 }}>{scoreLabels[key][val-1]}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* 清空比較 */}
+            <button onClick={()=>{ setCompareList([]); localStorage.removeItem(COMPARE_KEY); setShowPanel(false); }} style={{ marginTop:16, width:"100%", padding:"10px", border:"1.5px solid #eee", borderRadius:12, background:"none", fontSize:13, color:"#aaa", cursor:"pointer" }}>
+              清空比較清單
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── 雷達圖元件 ──
+function RadarChart({ scores }) {
+  const keys = ["stamina","comfort","budget","facility","traffic"];
+  const labels = ["體力消耗","家長舒適","預算親民","設施豐富","交通便利"];
+  const size = 160, cx = 80, cy = 80, r = 55;
+
+  const points = keys.map((k, i) => {
+    const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
+    const val = (scores[k] || 1) / 5;
+    return {
+      x: cx + r * val * Math.cos(angle),
+      y: cy + r * val * Math.sin(angle),
+      lx: cx + (r + 20) * Math.cos(angle),
+      ly: cy + (r + 20) * Math.sin(angle),
+      label: labels[i],
+    };
+  });
+
+  const gridPoints = (ratio) => keys.map((_, i) => {
+    const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
+    return `${cx + r * ratio * Math.cos(angle)},${cy + r * ratio * Math.sin(angle)}`;
+  }).join(" ");
+
+  const dataPath = points.map((p, i) => `${i===0?"M":"L"}${p.x},${p.y}`).join(" ") + "Z";
+
+  return (
+    <div style={{ display:"flex", justifyContent:"center" }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {[0.2,0.4,0.6,0.8,1].map(ratio=>(
+          <polygon key={ratio} points={gridPoints(ratio)} fill="none" stroke="#eee" strokeWidth="1"/>
+        ))}
+        {keys.map((_,i)=>{
+          const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
+          return <line key={i} x1={cx} y1={cy} x2={cx+r*Math.cos(angle)} y2={cy+r*Math.sin(angle)} stroke="#eee" strokeWidth="1"/>;
+        })}
+        <path d={dataPath} fill="rgba(255,107,107,0.2)" stroke="#FF6B6B" strokeWidth="2"/>
+        {points.map((p,i)=>(
+          <circle key={i} cx={p.x} cy={p.y} r="3" fill="#FF6B6B"/>
+        ))}
+        {points.map((p,i)=>(
+          <text key={i} x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"
+            fontSize="9" fill="#666" fontWeight="600">{p.label}</text>
+        ))}
+      </svg>
+    </div>
+  );
 }
 
 export default function SpotPage({ spot, related }) {
@@ -229,7 +414,35 @@ export default function SpotPage({ spot, related }) {
             </div>
           </div>
 
-          {/* 遊記搜尋 — H2 */}
+          {/* 雷達圖評分 */}
+          {spot.scores && (
+            <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+              <h2 style={{ fontSize:15, fontWeight:800, color:"#222", margin:"0 0 14px" }}>📊 景點評分</h2>
+              <RadarChart scores={spot.scores} />
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:14 }}>
+                {[
+                  { key:"stamina",  label:"體力消耗", icon:"💪", desc:["輕鬆","稍累","普通","費力","高強度"] },
+                  { key:"comfort",  label:"家長舒適", icon:"😌", desc:["辛苦","還好","普通","舒適","超舒適"] },
+                  { key:"budget",   label:"預算親民", icon:"💰", desc:["昂貴","偏貴","普通","實惠","免費"] },
+                  { key:"facility", label:"設施豐富", icon:"🎡", desc:["很少","少","普通","豐富","超豐富"] },
+                  { key:"traffic",  label:"交通便利", icon:"🚗", desc:["困難","稍難","普通","方便","超方便"] },
+                ].map(({key, label, icon, desc}) => (
+                  <div key={key} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:16 }}>{icon}</span>
+                    <div style={{ flex:1 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                        <span style={{ fontSize:11, color:"#666" }}>{label}</span>
+                        <span style={{ fontSize:11, color:"#FF6B6B", fontWeight:700 }}>{desc[spot.scores[key]-1]}</span>
+                      </div>
+                      <div style={{ height:5, borderRadius:3, background:"#f0f0f0", overflow:"hidden" }}>
+                        <div style={{ height:"100%", width:`${spot.scores[key]*20}%`, background:"linear-gradient(90deg,#FF6B6B,#ffa94d)", borderRadius:3 }}/>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {spot.blogKeywords && spot.blogKeywords.length > 0 && (
             <div style={{ background:"#f0f4ff", borderRadius:16, padding:16, marginBottom:12, border:"1.5px solid #d0d9ff" }}>
               <h2 style={{ fontSize:15, fontWeight:800, color:"#3b5bdb", margin:"0 0 12px" }}>📖 相關遊記參考</h2>
@@ -291,6 +504,9 @@ export default function SpotPage({ spot, related }) {
             style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"10px", borderRadius:12, textDecoration:"none", background:"#f8f6f2", border:"1.5px solid #e8e0d5", fontSize:13, fontWeight:600, color:"#aaa", gap:4, marginBottom:20 }}>
             🚩 回報資訊有誤
           </a>
+
+          {/* 加入比較 */}
+          <CompareBar spot={spot} />
 
           {/* 同縣市推薦 */}
           {related.length > 0 && (
