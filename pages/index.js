@@ -913,79 +913,61 @@ function SpotCard({spot,isFav,isVisited,inItinerary,onFav,onVisit,onAddItinerary
   const status=parseOpenStatus(spot.hours,spot.closed);
   const feeColor=spot.fee==="免費"?"#40c057":spot.fee==="付費"?"#ffa94d":"#da77f2";
   return (
-    <div style={{background:"#fff",borderRadius:16,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:isVisited?"1.5px solid #b2f2bb":"1.5px solid #f0f0f0"}}>
-      {/* 圖片區 */}
-      <div style={{height:140,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(spot)})`}}>
-        <img
-          src={getSpotImage(spot)}
-          alt={spot.name}
-          style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}
-          onError={e=>{e.target.style.display="none";}}
-          loading="lazy"
-        />
-        {isVisited&&<div style={{position:"absolute",top:10,right:10,background:"#40c057",color:"#fff",fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:10,zIndex:1}}>✅ 去過了</div>}
-        <button onClick={onFav} style={{position:"absolute",top:10,left:10,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:20,width:32,height:32,cursor:"pointer",fontSize:16,backdropFilter:"blur(4px)",zIndex:1}}>
-          {isFav?"❤️":"🤍"}
-        </button>
-        <div style={{position:"absolute",bottom:10,right:10,display:"flex",gap:6,zIndex:1}}>
-          <span style={{background:"rgba(0,0,0,0.45)",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10,backdropFilter:"blur(4px)"}}>{spot.type==="indoor"?"❄️ 室內":"🌳 戶外"}</span>
-          <span style={{background:feeColor+"cc",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10}}>{spot.fee}</span>
-        </div>
-        {/* emoji 浮在圖片上 */}
-        <div style={{position:"absolute",bottom:10,left:12,fontSize:24,zIndex:1}}>{spot.emoji}</div>
-      </div>
-      {/* 內容區 */}
-      <div style={{padding:"12px 14px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-          <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none",flex:1}}>
-            <div style={{fontWeight:800,fontSize:16,color:"#222",lineHeight:1.3}}>{spot.name}</div>
-          </Link>
-        </div>
-        <div style={{fontSize:12,color:"#999",marginBottom:6}}>📍 {spot.city} · {spot.district}</div>
-        {status&&(
-          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-            <span style={{fontSize:12,color:"#666"}}>🕐 {status.label}</span>
-            {status.open===true&&!isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#d3f9d8",color:"#2f9e44",padding:"1px 7px",borderRadius:6,fontWeight:700}}>營業中</span>}
-            {status.open===false&&isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#ffe3e3",color:"#c92a2a",padding:"1px 7px",borderRadius:6,fontWeight:700}}>今日公休</span>}
-            {status.open===false&&!isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#ffe8cc",color:"#e8590c",padding:"1px 7px",borderRadius:6,fontWeight:700}}>已關閉</span>}
+    <div style={{background:"#fff",borderRadius:16,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:isVisited?"1.5px solid #b2f2bb":"1.5px solid #f0f0f0",position:"relative"}}>
+      {/* 整張卡片可點擊進內頁 */}
+      <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none",display:"block",color:"inherit"}}>
+        {/* 圖片區 */}
+        <div style={{height:140,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(spot)})`}}>
+          <img src={getSpotImage(spot)} alt={spot.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} onError={e=>{e.target.style.display="none";}} loading="lazy"/>
+          {isVisited&&<div style={{position:"absolute",top:10,right:10,background:"#40c057",color:"#fff",fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:10,zIndex:1}}>✅ 去過了</div>}
+          <div style={{position:"absolute",bottom:10,right:10,display:"flex",gap:6,zIndex:1}}>
+            <span style={{background:"rgba(0,0,0,0.45)",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10,backdropFilter:"blur(4px)"}}>{spot.type==="indoor"?"❄️ 室內":"🌳 戶外"}</span>
+            <span style={{background:feeColor+"cc",color:"#fff",fontSize:10,padding:"2px 8px",borderRadius:10}}>{spot.fee}</span>
           </div>
-        )}
-        <div style={{fontSize:13,color:"#555",lineHeight:1.5,marginBottom:10}}>{spot.desc}</div>
-        {/* 實用資訊列 */}
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
-          {spot.duration && (
-            <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#e7f5ff",color:"#1971c2",fontWeight:600}}>
-              ⏱ {spot.duration}
-            </span>
-          )}
-          {spot.rain === true || spot.rain === "true" ? (
-            <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#e7f5ff",color:"#1971c2",fontWeight:600}}>☔ 雨天OK</span>
-          ) : (
-            <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#fff9db",color:"#e67700",fontWeight:600}}>☀️ 晴天佳</span>
-          )}
-          {spot.parking && (
-            <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#ebfbee",color:"#2f9e44",fontWeight:600}}>
-              🚗 停車{spot.parking}
-            </span>
-          )}
+          <div style={{position:"absolute",bottom:10,left:12,fontSize:24,zIndex:1}}>{spot.emoji}</div>
         </div>
-        {/* 標籤 */}
-        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
-          {spot.tags.slice(0,3).map(t=><span key={t} style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#f5f5f5",color:"#666"}}>{t}</span>)}
-          <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#f5f5f5",color:"#666"}}>👶 {spot.age}</span>
+        {/* 內容區 */}
+        <div style={{padding:"12px 14px 6px"}}>
+          <div style={{fontWeight:800,fontSize:16,color:"#222",lineHeight:1.3,marginBottom:4}}>{spot.name}</div>
+          <div style={{fontSize:12,color:"#999",marginBottom:6}}>📍 {spot.city} · {spot.district}</div>
+          {status&&(
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+              <span style={{fontSize:12,color:"#666"}}>🕐 {status.label}</span>
+              {status.open===true&&!isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#d3f9d8",color:"#2f9e44",padding:"1px 7px",borderRadius:6,fontWeight:700}}>營業中</span>}
+              {status.open===false&&isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#ffe3e3",color:"#c92a2a",padding:"1px 7px",borderRadius:6,fontWeight:700}}>今日公休</span>}
+              {status.open===false&&!isTodayClosed(spot.closed)&&<span style={{fontSize:10,background:"#ffe8cc",color:"#e8590c",padding:"1px 7px",borderRadius:6,fontWeight:700}}>已關閉</span>}
+            </div>
+          )}
+          <div style={{fontSize:13,color:"#555",lineHeight:1.5,marginBottom:8}}>{spot.desc}</div>
+          {/* 實用資訊列 */}
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+            {spot.duration&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#e7f5ff",color:"#1971c2",fontWeight:600}}>⏱ {spot.duration}</span>}
+            {spot.rain===true||spot.rain==="true"
+              ?<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#e7f5ff",color:"#1971c2",fontWeight:600}}>☔ 雨天OK</span>
+              :<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#fff9db",color:"#e67700",fontWeight:600}}>☀️ 晴天佳</span>}
+            {spot.parking&&<span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#ebfbee",color:"#2f9e44",fontWeight:600}}>🚗 停車{spot.parking}</span>}
+          </div>
+          {/* 標籤 */}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
+            {spot.tags.slice(0,3).map(t=><span key={t} style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#f5f5f5",color:"#666"}}>{t}</span>)}
+            <span style={{fontSize:11,padding:"2px 8px",borderRadius:8,background:"#f5f5f5",color:"#666"}}>👶 {spot.age}</span>
+          </div>
         </div>
-        {/* 訂票 */}
+      </Link>
+
+      {/* 訂票、操作按鈕（阻止冒泡，避免觸發 Link） */}
+      <div style={{padding:"0 14px 14px"}}>
         {(spot.kkday||spot.klook)&&(
-          <div style={{display:"flex",gap:6,marginBottom:10}}>
+          <div style={{display:"flex",gap:6,marginBottom:8}} onClick={e=>e.stopPropagation()}>
             {spot.kkday&&<a href={`https://www.kkday.com/zh-tw/product/productlist?keyword=${encodeURIComponent(spot.kkday)}&cid=25539`} target="_blank" rel="noopener noreferrer" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"7px",borderRadius:10,textDecoration:"none",background:"linear-gradient(135deg,#ff6b35,#ff4500)",color:"#fff",fontSize:12,fontWeight:700}}>🎫 KKday 查看票價</a>}
             {spot.klook&&<a href={`https://www.klook.com/zh-TW/search/?query=${encodeURIComponent(spot.klook)}&aid=124818`} target="_blank" rel="noopener noreferrer" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"7px",borderRadius:10,textDecoration:"none",background:"linear-gradient(135deg,#e91e8c,#c2185b)",color:"#fff",fontSize:12,fontWeight:700}}>🎟️ Klook 查看票價</a>}
           </div>
         )}
-        {/* 操作按鈕 */}
-        <div style={{display:"flex",gap:6}}>
-          <button onClick={onVisit} style={{flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${isVisited?"#40c057":"#eee"}`,background:isVisited?"#ebfbee":"#f8f9fa",color:isVisited?"#40c057":"#888",fontSize:12,fontWeight:600,cursor:"pointer"}}>{isVisited?"✅ 去過了":"📍 標記去過"}</button>
-          <button onClick={onAddItinerary} style={{flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${inItinerary?"#7950f2":"#eee"}`,background:inItinerary?"#f3f0ff":"#f8f9fa",color:inItinerary?"#7950f2":"#888",fontSize:12,fontWeight:600,cursor:"pointer"}}>{inItinerary?"🗓️ 已加入":"➕ 加行程"}</button>
-          <a href={`https://forms.gle/LMXGKFgj66edWcyg7?usp=pp_url&entry.景點=${encodeURIComponent(spot.name)}`} target="_blank" rel="noopener noreferrer" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"7px",borderRadius:10,textDecoration:"none",background:"#f8f9fa",border:"1.5px solid #eee",fontSize:12,fontWeight:600,color:"#aaa"}}>🚩 回報</a>
+        <div style={{display:"flex",gap:6}} onClick={e=>e.stopPropagation()}>
+          <button onClick={onFav} style={{flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${isFav?"#ff6b6b":"#eee"}`,background:isFav?"#fff5f5":"#f8f9fa",color:isFav?"#ff6b6b":"#888",fontSize:12,fontWeight:600,cursor:"pointer"}}>{isFav?"❤️ 已收藏":"🤍 收藏"}</button>
+          <button onClick={onVisit} style={{flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${isVisited?"#40c057":"#eee"}`,background:isVisited?"#ebfbee":"#f8f9fa",color:isVisited?"#40c057":"#888",fontSize:12,fontWeight:600,cursor:"pointer"}}>{isVisited?"✅ 去過了":"📍 去過"}</button>
+          <button onClick={onAddItinerary} style={{flex:1,padding:"7px",borderRadius:10,border:`1.5px solid ${inItinerary?"#7950f2":"#eee"}`,background:inItinerary?"#f3f0ff":"#f8f9fa",color:inItinerary?"#7950f2":"#888",fontSize:12,fontWeight:600,cursor:"pointer"}}>{inItinerary?"🗓️ 已加":"➕ 行程"}</button>
+          <a href={`https://forms.gle/LMXGKFgj66edWcyg7?usp=pp_url&entry.景點=${encodeURIComponent(spot.name)}`} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"7px",borderRadius:10,textDecoration:"none",background:"#f8f9fa",border:"1.5px solid #eee",fontSize:12,fontWeight:600,color:"#aaa"}}>🚩 回報</a>
         </div>
       </div>
     </div>
