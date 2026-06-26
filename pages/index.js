@@ -377,9 +377,12 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
       {/* ── 頂部 Header ── */}
       <div style={{background:"#fff",padding:"16px 16px 12px",boxShadow:"0 1px 0 #f0f0f0",position:"sticky",top:0,zIndex:100}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <div>
-            <div style={{fontWeight:900,fontSize:22,color:"#FF6B6B",letterSpacing:-0.5}}>假日遛小孩</div>
-            <div style={{fontSize:12,color:"#aaa",marginTop:2}}>{greeting}</div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <img src="/logo-40.png" alt="假日遛小孩" style={{width:40,height:40,borderRadius:10,flexShrink:0}}/>
+            <div>
+              <div style={{fontWeight:900,fontSize:18,color:"#FF6B6B",letterSpacing:-0.5}}>假日遛小孩</div>
+              <div style={{fontSize:11,color:"#aaa",marginTop:1}}>{greeting}</div>
+            </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             {itinerary.length>0&&<button onClick={()=>setShowItinerary(true)} style={{background:"#FF6B6B",color:"#fff",border:"none",borderRadius:16,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗓️ {itinerary.length}</button>}

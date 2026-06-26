@@ -22,6 +22,21 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         <meta name="google-site-verification" content="KFsM4y2B9Cwdg4xgfsQP0SdH6lg52mNqvd77HSHnauc" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <style>{`
+          *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+          body { background: #f8f9fa; -webkit-tap-highlight-color: transparent; }
+          a { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+          button { -webkit-tap-highlight-color: transparent; outline: none; }
+          button:focus { outline: none; }
+          a:focus { outline: none; }
+          img { max-width: 100%; display: block; }
+          input { -webkit-appearance: none; }
+          ::-webkit-scrollbar { display: none; }
+          * { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
       </Head>
 
       {/* Google Analytics */}
