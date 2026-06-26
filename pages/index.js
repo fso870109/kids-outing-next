@@ -466,7 +466,88 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
       </div>
 
-      {/* ── 今日推薦區塊 ── */}
+      {/* ── 情境懶人包 ── */}
+      <Section title="🎯 極端情境懶人包" action="">
+        <div style={{display:"grid",gap:10,padding:"0 16px"}}>
+          {[
+            {
+              icon:"🆘", title:"救命！爸媽電力歸零包",
+              desc:"有安全圍欄、工作人員看顧、家長可以坐著放空",
+              color:"linear-gradient(135deg,#ff6b6b,#ffa94d)",
+              filter: s => s.type==="indoor" && s.tags.some(t=>["遊樂園","親子","教育"].includes(t)),
+            },
+            {
+              icon:"🌿", title:"低成本高回報放電區",
+              desc:"免門票、大草皮、可以野餐跑跳一整天",
+              color:"linear-gradient(135deg,#40c057,#69db7c)",
+              filter: s => s.fee==="免費" && s.type==="outdoor" && s.tags.some(t=>["公園","自然","散步","步道"].includes(t)),
+            },
+            {
+              icon:"🌧️", title:"全台雨神同行備案",
+              desc:"下雨天專用，觀光工廠、博物館、室內體育場",
+              color:"linear-gradient(135deg,#4dabf7,#339af0)",
+              filter: s => s.type==="indoor" && s.tags.some(t=>["教育","歷史","科學","藝術","文化"].includes(t)),
+            },
+            {
+              icon:"💰", title:"小資家庭高CP值精選",
+              desc:"門票200元以下，玩超過3小時，評價超好",
+              color:"linear-gradient(135deg,#ffd43b,#fcc419)",
+              filter: s => s.fee==="免費" || (s.fee==="付費" && s.duration && s.duration.includes("4")),
+            },
+            {
+              icon:"🚀", title:"半天快閃不塞車",
+              desc:"停車容易、1–2小時玩完、親子都開心",
+              color:"linear-gradient(135deg,#9775fa,#7950f2)",
+              filter: s => s.parking==="容易" && s.duration && (s.duration.includes("1") || s.duration.includes("2")),
+            },
+          ].map((pack, i) => {
+            const spots = SPOTS.filter(pack.filter).sort(()=>Math.random()-0.5).slice(0,3);
+            return (
+              <div key={i} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
+                {/* 標題區 */}
+                <div style={{background:pack.color,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{fontSize:28}}>{pack.icon}</span>
+                  <div>
+                    <div style={{color:"#fff",fontWeight:800,fontSize:14}}>{pack.title}</div>
+                    <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{pack.desc}</div>
+                  </div>
+                </div>
+                {/* 景點預覽 */}
+                <div style={{background:"#fff",padding:"10px 12px"}}>
+                  {spots.length === 0 ? (
+                    <div style={{color:"#bbb",fontSize:12,textAlign:"center",padding:"8px 0"}}>暫無符合景點</div>
+                  ) : (
+                    <div style={{display:"grid",gap:6}}>
+                      {spots.map(s=>(
+                        <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 4px",borderRadius:10}}>
+                            <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                              <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                            </div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
+                              <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
+                            </div>
+                            <span style={{color:"#FF6B6B",fontSize:14,flexShrink:0}}>›</span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={()=>{
+                    const chip = ["age35","rainy","rainy","free","park"][i];
+                    setActiveChip(chip);
+                    setTab("explore");
+                    window.scrollTo({top:0,behavior:"instant"});
+                  }} style={{width:"100%",marginTop:8,padding:"8px",borderRadius:10,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:12,color:"#666",fontWeight:600,cursor:"pointer"}}>
+                    查看更多 →
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
       {todayRecs.map((block, bi) => (
         <Section key={bi} title={block.title} action="更多" onAction={()=>setTab("explore")}>
           <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>{block.subtitle}</div>
