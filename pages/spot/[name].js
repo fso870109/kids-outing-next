@@ -198,6 +198,20 @@ export default function SpotPage({ spot, related }) {
                 </div>
               )}
               <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>停留時間</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.duration || "依個人"}</span>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>停車</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>🚗 {spot.parking || "依景點"}</span>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>雨天</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>
+                  {spot.rain === true || spot.rain === "true" ? "☔ 適合" : "☀️ 晴天較佳"}
+                </span>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
                 <span style={{ fontSize:13, color:"#888", minWidth:56 }}>費用</span>
                 <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.fee}</span>
               </div>
