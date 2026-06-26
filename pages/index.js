@@ -866,7 +866,13 @@ function MePage({favSet,visited,itinerary,shareList,setShowItinerary,setTab}) {
       <div style={{padding:16,display:"grid",gap:10}}>
         {/* 統計 */}
         <div style={{background:"linear-gradient(135deg,#FF6B6B,#ffa94d)",borderRadius:20,padding:20,color:"#fff"}}>
-          <div style={{fontWeight:800,fontSize:16,marginBottom:16}}>GoKids Outing</div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+            <img src="/logo-40.png" alt="假日遛小孩" style={{width:36,height:36,borderRadius:8}}/>
+            <div>
+              <div style={{fontWeight:800,fontSize:15}}>假日遛小孩</div>
+              <div style={{fontSize:11,opacity:0.85}}>你的親子出遊記錄</div>
+            </div>
+          </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,textAlign:"center"}}>
             {[{icon:"❤️",count:favSet.size,label:"收藏"},{icon:"✅",count:visited.size,label:"去過"},{icon:"🗓️",count:itinerary.length,label:"行程"}].map(s=>(
               <div key={s.label} style={{background:"rgba(255,255,255,0.2)",borderRadius:12,padding:"10px 4px"}}>
