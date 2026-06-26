@@ -123,7 +123,7 @@ export default function SpotPage({ spot, related }) {
         {/* Header */}
         <div style={{background:`linear-gradient(135deg,#ff6b6b,#ffa94d)`,position:"relative",overflow:"hidden"}}>
           <img
-            src={`https://picsum.photos/seed/${spot.id}/600/300`}
+            src={spot.photo || `https://picsum.photos/seed/${spot.id}/600/300`}
             alt={spot.name}
             style={{width:"100%",height:200,objectFit:"cover",display:"block",opacity:0.7}}
             onError={e=>{e.target.style.display="none";}}
@@ -144,6 +144,11 @@ export default function SpotPage({ spot, related }) {
 
         <div style={{ padding:"16px 14px", maxWidth:600, margin:"0 auto" }}>
 
+          {/* H1 景點名稱（SEO 用，視覺上已在 Header 顯示，這裡隱藏） */}
+          <h1 style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)" }}>
+            {spot.city}{spot.type==="indoor"?"室內":"室外"}親子景點 — {spot.name}
+          </h1>
+
           {/* Badges */}
           <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
             <span style={{ fontSize:12, background:typeColor+"25", color:"#555", padding:"4px 12px", borderRadius:20, fontWeight:600, border:`1px solid ${typeColor}50` }}>{typeLabel}</span>
@@ -154,24 +159,72 @@ export default function SpotPage({ spot, related }) {
             ))}
           </div>
 
-          {/* 描述 */}
-          <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-            <h2 style={{ fontSize:14, fontWeight:700, color:"#333", margin:"0 0 10px" }}>📍 景點介紹</h2>
-            <p style={{ fontSize:15, color:"#333", lineHeight:1.8, margin:0 }}>
-              {spot.content || spot.desc}
-            </p>
+          {/* 景點介紹 — H2 + 段落分拆 */}
+          <div style={{ background:"#fff", borderRadius:16, padding:"16px 16px 20px", marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+            <h2 style={{ fontSize:16, fontWeight:800, color:"#222", margin:"0 0 12px", display:"flex", alignItems:"center", gap:6 }}>
+              📍 {spot.name} 景點介紹
+            </h2>
+            {(spot.content || spot.desc).split('。').filter(s=>s.trim()).reduce((acc, s, i, arr) => {
+              // 每 2 句合成一段
+              if (i % 2 === 0) {
+                const para = s + '。' + (arr[i+1] ? arr[i+1] + '。' : '');
+                acc.push(para.trim());
+              }
+              return acc;
+            }, []).map((para, i) => (
+              <p key={i} style={{ fontSize:14, color:"#444", lineHeight:1.85, margin:"0 0 10px", letterSpacing:0.2 }}>
+                {para}
+              </p>
+            ))}
           </div>
 
-          {/* 遊記搜尋連結 */}
+          {/* 基本資訊 — H2 */}
+          <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
+            <h2 style={{ fontSize:15, fontWeight:800, color:"#222", margin:"0 0 12px" }}>⏰ 基本資訊</h2>
+            <div style={{ display:"grid", gap:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>營業時間</span>
+                <div style={{ display:"flex", alignItems:"center", gap:6, flex:1 }}>
+                  <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.hours}</span>
+                  {status?.open === true && !isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#d3f9d8", color:"#2f9e44", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>營業中</span>}
+                  {status?.open === false && isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#ffe3e3", color:"#c92a2a", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>今日公休</span>}
+                  {status?.open === false && !isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#ffe8cc", color:"#e8590c", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>已關閉</span>}
+                </div>
+              </div>
+              {spot.closed && spot.closed !== "無公休" && (
+                <div style={{ display:"flex", gap:10 }}>
+                  <span style={{ fontSize:13, color:"#888", minWidth:56 }}>公休日</span>
+                  <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.closed}</span>
+                </div>
+              )}
+              <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>費用</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.fee}</span>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>適合年齡</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.age}</span>
+              </div>
+              <div style={{ display:"flex", gap:10 }}>
+                <span style={{ fontSize:13, color:"#888", minWidth:56 }}>類型</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{typeLabel}</span>
+              </div>
+            </div>
+            <div style={{ fontSize:11, color:"#bbb", marginTop:12, paddingTop:10, borderTop:"1px solid #f5f5f5" }}>
+              ⚠️ 出發前建議致電或查官網確認最新資訊
+            </div>
+          </div>
+
+          {/* 遊記搜尋 — H2 */}
           {spot.blogKeywords && spot.blogKeywords.length > 0 && (
             <div style={{ background:"#f0f4ff", borderRadius:16, padding:16, marginBottom:12, border:"1.5px solid #d0d9ff" }}>
-              <h2 style={{ fontSize:13, fontWeight:700, color:"#3b5bdb", margin:"0 0 10px" }}>📖 相關遊記參考</h2>
+              <h2 style={{ fontSize:15, fontWeight:800, color:"#3b5bdb", margin:"0 0 12px" }}>📖 相關遊記參考</h2>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {spot.blogKeywords.map((kw, i) => (
                   <a key={i}
                     href={`https://www.google.com/search?q=${encodeURIComponent(kw + ' 遊記 親子')}`}
                     target="_blank" rel="noopener noreferrer nofollow"
-                    style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", background:"#fff", borderRadius:10, textDecoration:"none", border:"1px solid #e0e7ff" }}
+                    style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px", background:"#fff", borderRadius:10, textDecoration:"none", border:"1px solid #e0e7ff" }}
                   >
                     <span style={{ fontSize:14 }}>🔍</span>
                     <span style={{ fontSize:13, color:"#3b5bdb", fontWeight:600 }}>{kw}</span>
@@ -181,21 +234,6 @@ export default function SpotPage({ spot, related }) {
               </div>
             </div>
           )}
-
-          {/* 營業資訊 */}
-          <div style={{ background:"#fff", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
-            <h2 style={{ fontSize:14, fontWeight:700, color:"#333", margin:"0 0 10px" }}>⏰ 營業資訊</h2>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-              <span style={{ fontSize:13, color:"#555" }}>🕐 {spot.hours}</span>
-              {status?.open === true && !isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#d3f9d8", color:"#2f9e44", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>營業中</span>}
-              {status?.open === false && isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#ffe3e3", color:"#c92a2a", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>今日公休</span>}
-              {status?.open === false && !isTodayClosed(spot.closed) && <span style={{ fontSize:11, background:"#ffe8cc", color:"#e8590c", padding:"2px 8px", borderRadius:6, fontWeight:700 }}>已關閉</span>}
-            </div>
-            {spot.closed && spot.closed !== "無公休" && (
-              <div style={{ fontSize:12, color:"#999", marginBottom:6 }}>🚫 公休：{spot.closed}</div>
-            )}
-            <div style={{ fontSize:11, color:"#bbb", marginTop:4 }}>⚠️ 出發前建議致電或查官網確認最新資訊</div>
-          </div>
 
           {/* Google Maps 內嵌 */}
           <div style={{ background:"#fff", borderRadius:16, overflow:"hidden", marginBottom:12, boxShadow:"0 2px 10px rgba(0,0,0,0.05)" }}>
@@ -250,7 +288,7 @@ export default function SpotPage({ spot, related }) {
                     <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", display:"flex", alignItems:"center", gap:10, boxShadow:"0 2px 8px rgba(0,0,0,0.05)", border:"1px solid #f0e6d3" }}>
                   <div style={{width:48,height:48,borderRadius:12,overflow:"hidden",flexShrink:0,background:"#f0f0f0"}}>
                     <img
-                      src={`https://picsum.photos/seed/${s.id}/100/100`}
+                      src={s.photo || `https://picsum.photos/seed/${s.id}/100/100`}
                       alt={s.name}
                       style={{width:"100%",height:"100%",objectFit:"cover"}}
                       onError={e=>{e.target.style.display="none";e.target.parentNode.style.display="flex";e.target.parentNode.style.alignItems="center";e.target.parentNode.style.justifyContent="center";e.target.parentNode.innerHTML=s.emoji;}}
