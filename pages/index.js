@@ -477,23 +477,23 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>{block.subtitle}</div>
           <div style={{overflowX:"auto",display:"flex",gap:10,padding:"0 16px"}}>
             {block.spots.map(s=>(
-              <div key={s.id} style={{flexShrink:0,width:150,borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
-                <div style={{height:100,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                  <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                  <button onClick={()=>toggleFav(s.id)} style={{position:"absolute",top:6,right:6,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:14,width:28,height:28,cursor:"pointer",fontSize:14,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    {favSet.has(s.id)?"❤️":"🤍"}
-                  </button>
-                  <div style={{position:"absolute",bottom:6,left:8}}>
-                    <span style={{background:s.fee==="免費"?"#40c057":"#ffa94d",color:"#fff",fontSize:10,padding:"1px 6px",borderRadius:8,fontWeight:700}}>{s.fee}</span>
+              <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none",flexShrink:0,width:150,display:"block"}}>
+                <div style={{borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+                  <div style={{height:100,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                    <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                    <button onClick={e=>{e.preventDefault();e.stopPropagation();toggleFav(s.id);}} style={{position:"absolute",top:6,right:6,background:"rgba(255,255,255,0.3)",border:"none",borderRadius:14,width:28,height:28,cursor:"pointer",fontSize:14,backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {favSet.has(s.id)?"❤️":"🤍"}
+                    </button>
+                    <div style={{position:"absolute",bottom:6,left:8}}>
+                      <span style={{background:s.fee==="免費"?"#40c057":"#ffa94d",color:"#fff",fontSize:10,padding:"1px 6px",borderRadius:8,fontWeight:700}}>{s.fee}</span>
+                    </div>
                   </div>
-                </div>
-                <Link href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
                   <div style={{padding:"8px 10px 10px"}}>
                     <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
                     <div style={{fontSize:11,color:"#999",marginTop:2}}>{s.city} · {s.type==="indoor"?"室內":"戶外"}</div>
                   </div>
-                </Link>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
         </Section>
@@ -1106,21 +1106,21 @@ function NearbyPage({nearbyList,gpsCoords,gpsLoading,findNearby,favSet,toggleFav
       {nearbyList.length===0&&gpsCoords&&<div style={{textAlign:"center",padding:40,color:"#bbb"}}>附近暫無景點資料<br/><span style={{fontSize:12}}>（景點座標資料持續更新中）</span></div>}
       <div style={{padding:"8px 16px",display:"grid",gap:10}}>
         {nearbyList.map(spot=>(
-          <div key={spot.id} style={{background:"#fff",borderRadius:16,padding:14,boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:"1px solid #f0e6d3"}}>
-            <div style={{display:"flex",gap:10,alignItems:"center"}}>
-              <div style={{width:56,height:56,borderRadius:14,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(spot)})`}}>
-                <img src={getSpotImage(spot)} alt={spot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-              </div>
-              <div style={{flex:1}}>
-                <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none"}}>
+          <Link key={spot.id} href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none",display:"block"}}>
+            <div style={{background:"#fff",borderRadius:16,padding:14,boxShadow:"0 2px 10px rgba(0,0,0,0.06)",border:"1px solid #f0e6d3"}}>
+              <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                <div style={{width:56,height:56,borderRadius:14,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(spot)})`}}>
+                  <img src={getSpotImage(spot)} alt={spot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                </div>
+                <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:15,color:"#222"}}>{spot.name}</div>
-                </Link>
-                <div style={{fontSize:12,color:"#999"}}>{spot.city} · {spot.district}</div>
-                <div style={{fontSize:12,color:"#FF6B6B",fontWeight:600,marginTop:2}}>📍 距離 {spot.distance.toFixed(1)} km</div>
+                  <div style={{fontSize:12,color:"#999"}}>{spot.city} · {spot.district}</div>
+                  <div style={{fontSize:12,color:"#FF6B6B",fontWeight:600,marginTop:2}}>📍 距離 {spot.distance.toFixed(1)} km</div>
+                </div>
+                <button onClick={e=>{e.preventDefault();e.stopPropagation();toggleFav(spot.id);}} style={{background:"none",border:"1.5px solid #eee",borderRadius:20,width:34,height:34,cursor:"pointer",fontSize:16}}>{favSet.has(spot.id)?"❤️":"🤍"}</button>
               </div>
-              <button onClick={()=>toggleFav(spot.id)} style={{background:"none",border:"1.5px solid #eee",borderRadius:20,width:34,height:34,cursor:"pointer",fontSize:16}}>{favSet.has(spot.id)?"❤️":"🤍"}</button>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
