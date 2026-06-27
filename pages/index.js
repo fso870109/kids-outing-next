@@ -175,10 +175,49 @@ export default function Home() {
     if(!navigator.geolocation){alert("瀏覽器不支援定位");return;}
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      pos=>{ setGpsCoords({lat:pos.coords.latitude,lng:pos.coords.longitude}); setGpsLoading(false); setTab("nearby"); },
+      pos=>{ setGpsCoords({lat:pos.coords.latitude,lng:pos.coords.longitude,source:"gps"}); setGpsLoading(false); setTab("nearby"); },
       ()=>{ alert("無法取得位置，請確認已允許定位權限"); setGpsLoading(false); }
     );
   };
+
+  // IP 定位（初始化時自動執行，作為 GPS 未授權時的替代）
+  const IP_CITY_MAP = {
+    "Taipei":"台北","New Taipei":"新北","Taoyuan":"桃園","Taichung":"台中",
+    "Tainan":"台南","Kaohsiung":"高雄","Keelung":"基隆","Hsinchu":"新竹市",
+    "Chiayi":"嘉義市","Yilan":"宜蘭","Hualien":"花蓮","Taitung":"台東",
+    "Pingtung":"屏東","Changhua":"彰化","Nantou":"南投","Yunlin":"雲林",
+    "Miaoli":"苗栗","Penghu":"澎湖","Kinmen":"金門","Lienchiang":"連江縣",
+  };
+  useEffect(()=>{
+    // 若已有 GPS 座標就不用 IP
+    if(gpsCoords) return;
+    fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) })
+      .then(r=>r.json())
+      .then(data=>{
+        // 找對應的台灣縣市
+        const cityEn = data.city || data.region || "";
+        const matched = Object.entries(IP_CITY_MAP).find(([en])=>cityEn.includes(en));
+        if(!matched) return;
+        const cityZh = matched[1];
+        // 找該縣市的一個景點取得代表座標
+        const rep = SPOTS.find(s=>s.city===cityZh&&s.lat&&s.lng);
+        if(!rep) return;
+        // 只在沒有 GPS 的情況下套用，標記 source 為 ip
+        setGpsCoords(prev => prev ? prev : {lat:rep.lat, lng:rep.lng, source:"ip", city:cityZh});
+      })
+      .catch(()=>{}); // 失敗靜默，不影響使用
+  },[]);
+
+  // GPS 精確定位（背景執行，有授權就自動升級）
+  useEffect(()=>{
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        setGpsCoords({lat:pos.coords.latitude, lng:pos.coords.longitude, source:"gps"});
+      },
+      ()=>{} // 拒絕授權就靜默
+    );
+  },[]);
 
   // 分享
   const shareList = ()=>{
@@ -439,7 +478,14 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
             />
             <div>
               <div style={{fontWeight:900,fontSize:18,color:"#FF6B6B",letterSpacing:-0.5}}>假日遛小孩</div>
-              <div style={{fontSize:11,color:"#aaa",marginTop:1}}>{greeting}</div>
+              <div style={{fontSize:11,color:"#aaa",marginTop:1}}>
+                {gpsCoords?.source==="gps"
+                  ? `📍 ${greeting}`
+                  : gpsCoords?.source==="ip"
+                  ? <span>📡 依網路位置推薦・<button onClick={findNearby} style={{background:"none",border:"none",color:"#FF6B6B",fontSize:11,fontWeight:700,cursor:"pointer",padding:0}}>升級精準定位</button></span>
+                  : greeting
+                }
+              </div>
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -627,7 +673,17 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
 
 
       {/* ── 情境懶人包（第二層：今日推薦不滿意往下找）── */}
-      <Section title="🎯 極端情境懶人包" action="">
+      <Section title="" action="">
+        {/* 太魯閣背景標題 */}
+        <div style={{margin:"0 16px 12px",borderRadius:16,overflow:"hidden",position:"relative"}}>
+          <img src="/lazy-bg.jpg" alt="" style={{width:"100%",height:120,objectFit:"cover",display:"block"}}/>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.3) 100%)",display:"flex",alignItems:"flex-end",padding:"14px 16px"}}>
+            <div>
+              <div style={{color:"#fff",fontWeight:800,fontSize:17}}>🎯 極端情境懶人包</div>
+              <div style={{color:"rgba(255,255,255,0.8)",fontSize:11,marginTop:2}}>依你的狀況，直接給你答案</div>
+            </div>
+          </div>
+        </div>
         {(()=>{
           // 從 GPS 判斷最近地區
           let nearRegion = null;
@@ -736,11 +792,14 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
       {/* ── 不知道去哪巫師（第三層：最後防線）── */}
       <div style={{margin:"8px 16px 0"}}>
         {wizardStep===0&&(
-          <div style={{background:"#1a1a2e",borderRadius:20,padding:"20px",textAlign:"center"}}>
-            <div style={{fontSize:32,marginBottom:8}}>🤷</div>
-            <div style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:4}}>還是不知道去哪？</div>
-            <div style={{color:"rgba(255,255,255,0.6)",fontSize:13,marginBottom:16}}>回答幾個問題，讓我幫你挑！</div>
-            <button onClick={()=>setWizardStep(1)} style={{background:"#fff",color:"#1a1a2e",border:"none",borderRadius:20,padding:"10px 28px",fontSize:14,fontWeight:800,cursor:"pointer"}}>幫我推薦 →</button>
+          <div style={{borderRadius:20,overflow:"hidden",position:"relative"}}>
+            <img src="/wizard-bg.jpg" alt="" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
+            <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.45) 60%,rgba(0,0,0,0.2) 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",padding:"20px 20px 24px",textAlign:"center"}}>
+              <div style={{fontSize:28,marginBottom:6}}>🤷</div>
+              <div style={{color:"#fff",fontWeight:800,fontSize:17,marginBottom:4,textShadow:"0 1px 4px rgba(0,0,0,0.5)"}}>還是不知道去哪？</div>
+              <div style={{color:"rgba(255,255,255,0.85)",fontSize:12,marginBottom:14,textShadow:"0 1px 3px rgba(0,0,0,0.5)"}}>回答幾個問題，讓我幫你挑！</div>
+              <button onClick={()=>setWizardStep(1)} style={{background:"#fff",color:"#222",border:"none",borderRadius:20,padding:"10px 28px",fontSize:14,fontWeight:800,cursor:"pointer",boxShadow:"0 2px 10px rgba(0,0,0,0.3)"}}>幫我推薦 →</button>
+            </div>
           </div>
         )}
         {wizardStep>0&&wizardStep<99&&(
