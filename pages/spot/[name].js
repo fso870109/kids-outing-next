@@ -182,26 +182,36 @@ function CompareBar({ spot }) {
 function RadarChart({ scores }) {
   const keys = ["stamina","comfort","budget","facility","traffic"];
   const labels = ["體力消耗","家長舒適","預算親民","設施豐富","交通便利"];
-  const size = 160, cx = 80, cy = 80, r = 55;
+  const size = 200, cx = 100, cy = 95, r = 58;
+
+  const angle = (i) => (i * 2 * Math.PI / keys.length) - Math.PI / 2;
 
   const points = keys.map((k, i) => {
-    const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
+    const a = angle(i);
     const val = (scores[k] || 1) / 5;
     return {
-      x: cx + r * val * Math.cos(angle),
-      y: cy + r * val * Math.sin(angle),
-      lx: cx + (r + 20) * Math.cos(angle),
-      ly: cy + (r + 20) * Math.sin(angle),
-      label: labels[i],
+      x: cx + r * val * Math.cos(a),
+      y: cy + r * val * Math.sin(a),
     };
   });
 
   const gridPoints = (ratio) => keys.map((_, i) => {
-    const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
-    return `${cx + r * ratio * Math.cos(angle)},${cy + r * ratio * Math.sin(angle)}`;
+    const a = angle(i);
+    return `${cx + r * ratio * Math.cos(a)},${cy + r * ratio * Math.sin(a)}`;
   }).join(" ");
 
   const dataPath = points.map((p, i) => `${i===0?"M":"L"}${p.x},${p.y}`).join(" ") + "Z";
+
+  // 標籤位置：往外推更多距離，並根據位置微調對齊方式
+  const labelPos = keys.map((_, i) => {
+    const a = angle(i);
+    const dist = r + 26;
+    const lx = cx + dist * Math.cos(a);
+    const ly = cy + dist * Math.sin(a);
+    // 水平對齊：左側用end，右側用start，頂部和底部用middle
+    const anchor = Math.cos(a) < -0.3 ? "end" : Math.cos(a) > 0.3 ? "start" : "middle";
+    return { lx, ly, label: labels[i], anchor };
+  });
 
   return (
     <div style={{ display:"flex", justifyContent:"center" }}>
@@ -210,16 +220,16 @@ function RadarChart({ scores }) {
           <polygon key={ratio} points={gridPoints(ratio)} fill="none" stroke="#eee" strokeWidth="1"/>
         ))}
         {keys.map((_,i)=>{
-          const angle = (i * 2 * Math.PI / keys.length) - Math.PI / 2;
-          return <line key={i} x1={cx} y1={cy} x2={cx+r*Math.cos(angle)} y2={cy+r*Math.sin(angle)} stroke="#eee" strokeWidth="1"/>;
+          const a = angle(i);
+          return <line key={i} x1={cx} y1={cy} x2={cx+r*Math.cos(a)} y2={cy+r*Math.sin(a)} stroke="#eee" strokeWidth="1"/>;
         })}
         <path d={dataPath} fill="rgba(255,107,107,0.2)" stroke="#FF6B6B" strokeWidth="2"/>
         {points.map((p,i)=>(
           <circle key={i} cx={p.x} cy={p.y} r="3" fill="#FF6B6B"/>
         ))}
-        {points.map((p,i)=>(
-          <text key={i} x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"
-            fontSize="9" fill="#666" fontWeight="600">{p.label}</text>
+        {labelPos.map((l,i)=>(
+          <text key={i} x={l.lx} y={l.ly} textAnchor={l.anchor} dominantBaseline="middle"
+            fontSize="9.5" fill="#555" fontWeight="600">{l.label}</text>
         ))}
       </svg>
     </div>
