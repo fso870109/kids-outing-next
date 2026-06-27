@@ -130,7 +130,7 @@ function CompareBar({ spot }) {
               { label:"適合年齡", get: s=>s.age },
               { label:"停留時間", get: s=>s.duration||"—" },
               { label:"雨天", get: s=>(s.rain===true||s.rain==="true")?"☔ 適合":"☀️ 晴天佳" },
-              { label:"停車", get: s=>`🚗 ${s.parking||"—"}` },
+              { label:"停車", get: s=>s.parking==="容易"?"🚗 停車方便":"🅿️ 附設停車場" },
               { label:"類型", get: s=>s.type==="indoor"?"❄️ 室內":"🌳 戶外" },
             ].map(row=>(
               <div key={row.label} style={{ display:"grid", gridTemplateColumns:`80px repeat(${compareList.length},1fr)`, gap:6, marginBottom:8, alignItems:"center" }}>
@@ -388,7 +388,7 @@ export default function SpotPage({ spot, related }) {
               </div>
               <div style={{ display:"flex", gap:10 }}>
                 <span style={{ fontSize:13, color:"#888", minWidth:56 }}>停車</span>
-                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>🚗 {spot.parking || "依景點"}</span>
+                <span style={{ fontSize:13, color:"#333", fontWeight:600 }}>{spot.parking==="容易"?"🚗 停車方便":"🅿️ 附設停車場"}</span>
               </div>
               <div style={{ display:"flex", gap:10 }}>
                 <span style={{ fontSize:13, color:"#888", minWidth:56 }}>雨天</span>
