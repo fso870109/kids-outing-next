@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import SPOTS from "../data/spots";
@@ -508,7 +508,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           return (
             <Section title="🎢 週末全天行程備案" action="">
               {regionCities && <div style={{fontSize:11,color:"#aaa",padding:"0 16px",marginBottom:6}}>依你的位置篩選</div>}
-              <div style={{overflowX:"auto",display:"flex",gap:12,padding:"0 16px"}}>
+              <ScrollCarousel count={fullDaySpots.length}>
                 {fullDaySpots.map(spot=>(
                   <div key={spot.id} style={{flexShrink:0,width:280,borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.08)"}}>
                     <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none"}}>
@@ -544,10 +544,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
                     </div>
                   </div>
                 ))}
-              </div>
-              <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:10}}>
-                {fullDaySpots.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:3,background:i===0?"#FF6B6B":"#eee"}}/>)}
-              </div>
+              </ScrollCarousel>
             </Section>
           );
         }
@@ -557,7 +554,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
           return (
             <Section title="🗓️ 半天行程備案" action="">
               {regionCities && <div style={{fontSize:11,color:"#aaa",padding:"0 16px",marginBottom:6}}>依你的位置篩選</div>}
-              <div style={{overflowX:"auto",display:"flex",gap:12,padding:"0 16px"}}>
+              <ScrollCarousel count={pairs.length}>
                 {pairs.map((pair,idx)=>(
                   <div key={idx} style={{flexShrink:0,width:280,background:"#fff",borderRadius:16,padding:"14px",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
                     <div style={{fontWeight:700,fontSize:11,color:"#aaa",marginBottom:10}}>備案 {idx+1}</div>
@@ -592,10 +589,7 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
                     </Link>
                   </div>
                 ))}
-              </div>
-              <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:10}}>
-                {pairs.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:3,background:i===0?"#FF6B6B":"#eee"}}/>)}
-              </div>
+              </ScrollCarousel>
             </Section>
           );
         }
@@ -1355,6 +1349,45 @@ function HeroCarousel({spots,favSet,toggleFav}) {
         ))}
       </div>
     </div>
+  );
+}
+
+// ════════════════════════════════════════
+// 帶圓點的橫向滑動容器
+// ════════════════════════════════════════
+function ScrollCarousel({ children, count }) {
+  const scrollRef = useRef(null);
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const cardW = el.scrollWidth / count;
+    const idx = Math.round(el.scrollLeft / cardW);
+    setActiveIdx(Math.min(idx, count - 1));
+  };
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        style={{overflowX:"auto",display:"flex",gap:12,padding:"0 16px",scrollSnapType:"x mandatory"}}
+      >
+        {React.Children.map(children, child =>
+          React.cloneElement(child, {
+            style: {...(child.props.style||{}), scrollSnapAlign:"start"}
+          })
+        )}
+      </div>
+      {count > 1 && (
+        <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:10}}>
+          {Array.from({length:count}).map((_,i)=>(
+            <div key={i} style={{width:i===activeIdx?16:6,height:6,borderRadius:3,background:i===activeIdx?"#FF6B6B":"#eee",transition:"width 0.2s"}}/>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
