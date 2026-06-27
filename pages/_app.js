@@ -76,7 +76,7 @@ function Footer() {
       <div style={{maxWidth:480,margin:"0 auto"}}>
         {/* Logo + 描述 */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-          <img src="/logo-40.png" alt="假日遛小孩" style={{width:32,height:32,borderRadius:8}}/>
+          <img src="/logo-40.png" srcSet="/logo-40.png 1x, /logo-80.png 2x" alt="假日遛小孩" style={{width:32,height:32,borderRadius:8}}/>
           <div>
             <div style={{color:"#fff",fontWeight:800,fontSize:15}}>假日遛小孩</div>
             <div style={{fontSize:11,color:"#777",marginTop:1}}>全台親子出遊決策平台</div>

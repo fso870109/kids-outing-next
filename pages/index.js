@@ -431,7 +431,12 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
       <div style={{background:"#fff",padding:"16px 16px 12px",boxShadow:"0 1px 0 #f0f0f0",position:"sticky",top:0,zIndex:100}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <img src="/logo-40.png" alt="假日遛小孩" style={{width:40,height:40,borderRadius:10,flexShrink:0}}/>
+            <img
+              src="/logo-40.png"
+              srcSet="/logo-40.png 1x, /logo-80.png 2x"
+              alt="假日遛小孩"
+              style={{width:40,height:40,borderRadius:10,flexShrink:0}}
+            />
             <div>
               <div style={{fontWeight:900,fontSize:18,color:"#FF6B6B",letterSpacing:-0.5}}>假日遛小孩</div>
               <div style={{fontSize:11,color:"#aaa",marginTop:1}}>{greeting}</div>
@@ -1135,7 +1140,7 @@ function MePage({favSet,visited,itinerary,shareList,setShowItinerary,setTab}) {
         {/* 統計 */}
         <div style={{background:"linear-gradient(135deg,#FF6B6B,#ffa94d)",borderRadius:20,padding:20,color:"#fff"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-            <img src="/logo-40.png" alt="假日遛小孩" style={{width:36,height:36,borderRadius:8}}/>
+            <img src="/logo-40.png" srcSet="/logo-40.png 1x, /logo-80.png 2x" alt="假日遛小孩" style={{width:36,height:36,borderRadius:8}}/>
             <div>
               <div style={{fontWeight:800,fontSize:15}}>假日遛小孩</div>
               <div style={{fontSize:11,opacity:0.85}}>你的親子出遊記錄</div>
