@@ -310,7 +310,7 @@ export default function Home() {
           showItinerary={showItinerary} setShowItinerary={setShowItinerary}
           removeItinerary={removeItinerary} shareList={shareList}
           setTab={setTab} findNearby={findNearby} gpsLoading={gpsLoading}
-          gpsCoords={gpsCoords}
+          gpsCoords={gpsCoords} setGpsCoords={setGpsCoords}
           season={season} seasonInfo={seasonInfo}
           wizardStep={wizardStep} setWizardStep={setWizardStep}
           wizardAnswers={wizardAnswers} setWizardAnswers={setWizardAnswers}
@@ -420,7 +420,7 @@ function getTodayRecs(favSet, visited, gpsCoords) {
 // ════════════════════════════════════════
 // 首頁
 // ════════════════════════════════════════
-function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary,showItinerary,setShowItinerary,removeItinerary,shareList,setTab,findNearby,gpsLoading,gpsCoords,season,seasonInfo,wizardStep,setWizardStep,wizardAnswers,setWizardAnswers,wizardResult,runWizard,WIZARD,setActiveChip,setSearch,setActiveCity}) {
+function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary,showItinerary,setShowItinerary,removeItinerary,shareList,setTab,findNearby,gpsLoading,gpsCoords,setGpsCoords,season,seasonInfo,wizardStep,setWizardStep,wizardAnswers,setWizardAnswers,wizardResult,runWizard,WIZARD,setActiveChip,setSearch,setActiveCity}) {
   const hour = new Date().getHours();
   const greeting = hour<6?"深夜了，明天再帶孩子出門？":hour<12?"早安！今天帶孩子去哪？":hour<18?"下午好！找個地方遛小孩？":"傍晚了，附近有什麼好玩的？";
   const todayRecs = getTodayRecs(favSet, visited, gpsCoords);
@@ -471,6 +471,138 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
       </div>
 
+      {/* ── 行程靈感（左右滑動3個備案）── */}
+      {(()=>{
+        const isWeekend = [0,6].includes(new Date().getDay());
+
+        // 依地區篩選
+        let regionCities = null;
+        if (gpsCoords) {
+          const nearestCity = SPOTS.filter(s=>s.lat&&s.lng)
+            .map(s=>({city:s.city,d:Math.abs(s.lat-gpsCoords.lat)+Math.abs(s.lng-gpsCoords.lng)}))
+            .sort((a,b)=>a.d-b.d)[0]?.city;
+          const region = REGIONS.find(r=>r.cities.includes(nearestCity));
+          if (region) regionCities = region.cities;
+        }
+
+        // 全天型：抓3個備案
+        const fullDaySpots = SPOTS.filter(s =>
+          s.tags.some(t=>["遊樂園","動物","水族館"].includes(t)) &&
+          s.duration && s.duration.includes("4") &&
+          (!regionCities || regionCities.includes(s.city))
+        ).sort(()=>Math.random()-0.5).slice(0,3);
+
+        // 半天型：各找3組
+        const morningPool = SPOTS.filter(s =>
+          s.type==="outdoor" && s.duration && s.duration.includes("2") &&
+          !s.tags.includes("遊樂園") &&
+          (!regionCities || regionCities.includes(s.city))
+        ).sort(()=>Math.random()-0.5).slice(0,3);
+
+        const afternoonPool = SPOTS.filter(s =>
+          s.type==="indoor" && s.duration && s.duration.includes("2") &&
+          (!regionCities || regionCities.includes(s.city))
+        ).sort(()=>Math.random()-0.5).slice(0,3);
+
+        if (isWeekend && fullDaySpots.length > 0) {
+          return (
+            <Section title="🎢 週末全天行程備案" action="">
+              {regionCities && <div style={{fontSize:11,color:"#aaa",padding:"0 16px",marginBottom:6}}>依你的位置篩選</div>}
+              <div style={{overflowX:"auto",display:"flex",gap:12,padding:"0 16px"}}>
+                {fullDaySpots.map(spot=>(
+                  <div key={spot.id} style={{flexShrink:0,width:280,borderRadius:16,overflow:"hidden",background:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.08)"}}>
+                    <Link href={`/spot/${encodeURIComponent(spot.name)}`} style={{textDecoration:"none"}}>
+                      <div style={{height:130,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(spot)})`}}>
+                        <img src={getSpotImage(spot)} alt={spot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 55%)"}}>
+                          <div style={{position:"absolute",bottom:12,left:14}}>
+                            <div style={{color:"#fff",fontWeight:800,fontSize:15}}>{spot.name}</div>
+                            <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{spot.city} · 建議玩一整天</div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                    <div style={{padding:"10px 14px 14px"}}>
+                      {[
+                        {time:"09:30",label:"開門入場",desc:"開園就進去避開人潮",icon:"🎉"},
+                        {time:"12:00",label:"園內午餐",desc:"園區餐廳或自備野餐",icon:"🍱"},
+                        {time:"14:00",label:"繼續玩！",desc:"下午繼續攻略設施",icon:"🎠"},
+                        {time:"17:00",label:"準備離場",desc:"提早出發避開塞車",icon:"🚗"},
+                      ].map((step,i)=>(
+                        <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:i<3?8:0}}>
+                          <div style={{fontWeight:800,color:"#FF6B6B",fontSize:12,minWidth:36,flexShrink:0,paddingTop:1}}>{step.time}</div>
+                          <div style={{width:2,background:"#FFE0E0",alignSelf:"stretch",borderRadius:1,flexShrink:0,minHeight:24}}/>
+                          <div>
+                            <div style={{display:"flex",alignItems:"center",gap:4}}>
+                              <span style={{fontSize:13}}>{step.icon}</span>
+                              <span style={{fontWeight:700,fontSize:12,color:"#222"}}>{step.label}</span>
+                            </div>
+                            <div style={{fontSize:10,color:"#999",marginTop:1}}>{step.desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:10}}>
+                {fullDaySpots.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:3,background:i===0?"#FF6B6B":"#eee"}}/>)}
+              </div>
+            </Section>
+          );
+        }
+
+        if (!isWeekend && morningPool.length > 0 && afternoonPool.length > 0) {
+          const pairs = morningPool.map((m,i)=>({morning:m,afternoon:afternoonPool[i]||afternoonPool[0]}));
+          return (
+            <Section title="🗓️ 半天行程備案" action="">
+              {regionCities && <div style={{fontSize:11,color:"#aaa",padding:"0 16px",marginBottom:6}}>依你的位置篩選</div>}
+              <div style={{overflowX:"auto",display:"flex",gap:12,padding:"0 16px"}}>
+                {pairs.map((pair,idx)=>(
+                  <div key={idx} style={{flexShrink:0,width:280,background:"#fff",borderRadius:16,padding:"14px",boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+                    <div style={{fontWeight:700,fontSize:11,color:"#aaa",marginBottom:10}}>備案 {idx+1}</div>
+                    <Link href={`/spot/${encodeURIComponent(pair.morning.name)}`} style={{textDecoration:"none",display:"block",marginBottom:8}}>
+                      <div style={{display:"flex",gap:10,alignItems:"center",background:"#f8f9fa",borderRadius:12,padding:"8px 10px"}}>
+                        <div style={{fontWeight:800,color:"#FF6B6B",fontSize:12,minWidth:36,flexShrink:0}}>09:30</div>
+                        <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(pair.morning)})`}}>
+                          <img src={getSpotImage(pair.morning)} alt={pair.morning.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontWeight:700,fontSize:12,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{pair.morning.name}</div>
+                          <div style={{fontSize:10,color:"#999"}}>{pair.morning.city} · {pair.morning.duration}</div>
+                        </div>
+                      </div>
+                    </Link>
+                    <div style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:"#fff9f0",borderRadius:12,border:"1px dashed #ffd43b",marginBottom:8}}>
+                      <div style={{fontWeight:800,color:"#e67700",fontSize:12,minWidth:36,flexShrink:0}}>12:00</div>
+                      <span style={{fontSize:15}}>🍜</span>
+                      <div style={{fontSize:12,color:"#666",fontWeight:600}}>附近找餐廳</div>
+                    </div>
+                    <Link href={`/spot/${encodeURIComponent(pair.afternoon.name)}`} style={{textDecoration:"none",display:"block"}}>
+                      <div style={{display:"flex",gap:10,alignItems:"center",background:"#f8f9fa",borderRadius:12,padding:"8px 10px"}}>
+                        <div style={{fontWeight:800,color:"#FF6B6B",fontSize:12,minWidth:36,flexShrink:0}}>14:00</div>
+                        <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(pair.afternoon)})`}}>
+                          <img src={getSpotImage(pair.afternoon)} alt={pair.afternoon.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                        </div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontWeight:700,fontSize:12,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{pair.afternoon.name}</div>
+                          <div style={{fontSize:10,color:"#999"}}>{pair.afternoon.city} · {pair.afternoon.duration}</div>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:10}}>
+                {pairs.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:3,background:i===0?"#FF6B6B":"#eee"}}/>)}
+              </div>
+            </Section>
+          );
+        }
+        return null;
+      })()}
+
+
       {/* ── 今日推薦區塊（第一層：立刻給答案）── */}
       {todayRecs.map((block, bi) => (
         <Section key={bi} title={block.title} action="更多" onAction={()=>setTab("explore")}>
@@ -499,233 +631,111 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </Section>
       ))}
 
-      {/* ── 行程靈感（第一層延伸）── */}
-      {(()=>{
-        // 全天型景點（遊樂園/動物園/水族館）
-        const fullDaySpot = SPOTS.find(s =>
-          s.tags.some(t=>["遊樂園","動物","水族館"].includes(t)) &&
-          s.duration && s.duration.includes("4")
-        );
-        // 半天型：上午景點 + 下午景點（不同類型）
-        const morningSpot = SPOTS.find(s =>
-          s.type==="outdoor" && s.duration && s.duration.includes("2") &&
-          !s.tags.includes("遊樂園")
-        );
-        const afternoonSpot = SPOTS.find(s =>
-          s.type==="indoor" && s.duration && s.duration.includes("2") &&
-          s.id !== (morningSpot?.id)
-        );
-
-        // 兩種方案切換（今天是週末就推全天，否則推半天）
-        const isWeekend = [0,6].includes(new Date().getDay());
-
-        if (isWeekend && fullDaySpot) {
-          return (
-            <Section title="🎢 週末全天行程" action="">
-              <div style={{margin:"0 16px",background:"#fff",borderRadius:16,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
-                <Link href={`/spot/${encodeURIComponent(fullDaySpot.name)}`} style={{textDecoration:"none"}}>
-                  <div style={{height:120,position:"relative",overflow:"hidden",background:`linear-gradient(135deg,${getGradient(fullDaySpot)})`}}>
-                    <img src={getSpotImage(fullDaySpot)} alt={fullDaySpot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 60%)"}}>
-                      <div style={{position:"absolute",bottom:12,left:14}}>
-                        <div style={{color:"#fff",fontWeight:800,fontSize:16}}>{fullDaySpot.name}</div>
-                        <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{fullDaySpot.city} · 建議玩一整天</div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-                <div style={{padding:"12px 14px"}}>
-                  {[
-                    {time:"09:30", label:"開門入場", desc:"建議開園就進去，避開人潮", icon:"🎉"},
-                    {time:"12:00", label:"園內午餐", desc:"園區餐廳或自備食物野餐", icon:"🍱"},
-                    {time:"14:00", label:"繼續玩！", desc:"下午繼續攻略剩餘設施", icon:"🎠"},
-                    {time:"17:00", label:"準備離場", desc:"避開下班塞車，提早出發", icon:"🚗"},
-                  ].map((step,i)=>(
-                    <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:i<3?10:0}}>
-                      <div style={{fontWeight:800,color:"#FF6B6B",fontSize:13,minWidth:40,flexShrink:0,paddingTop:2}}>{step.time}</div>
-                      <div style={{width:2,background:"#FFE0E0",alignSelf:"stretch",borderRadius:1,flexShrink:0,minHeight:32}}/>
-                      <div>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{fontSize:14}}>{step.icon}</span>
-                          <span style={{fontWeight:700,fontSize:13,color:"#222"}}>{step.label}</span>
-                        </div>
-                        <div style={{fontSize:11,color:"#999",marginTop:2}}>{step.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Section>
-          );
-        }
-
-        // 半天行程
-        if (morningSpot && afternoonSpot) {
-          return (
-            <Section title="🗓️ 半天行程靈感" action="">
-              <div style={{display:"grid",gap:8,padding:"0 16px"}}>
-                {/* 上午景點 */}
-                <Link href={`/spot/${encodeURIComponent(morningSpot.name)}`} style={{textDecoration:"none",color:"inherit"}}>
-                  <div style={{background:"#fff",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 6px rgba(0,0,0,0.06)"}}>
-                    <div style={{fontWeight:800,color:"#FF6B6B",fontSize:14,minWidth:44,flexShrink:0}}>09:30</div>
-                    <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(morningSpot)})`}}>
-                      <img src={getSpotImage(morningSpot)} alt={morningSpot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                    </div>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:14,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{morningSpot.name}</div>
-                      <div style={{fontSize:11,color:"#999",marginTop:2}}>{morningSpot.city} · {morningSpot.duration}</div>
-                    </div>
-                    <span style={{fontSize:13,color:"#FF6B6B",fontWeight:600,flexShrink:0}}>›</span>
-                  </div>
-                </Link>
-
-                {/* 午餐提示 */}
-                <div style={{display:"flex",alignItems:"center",gap:12,padding:"8px 14px",background:"#fff9f0",borderRadius:14,border:"1px dashed #ffd43b"}}>
-                  <div style={{fontWeight:800,color:"#e67700",fontSize:14,minWidth:44,flexShrink:0}}>12:00</div>
-                  <span style={{fontSize:18}}>🍜</span>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:13,color:"#333"}}>午餐時間</div>
-                    <div style={{fontSize:11,color:"#aaa"}}>在附近找間親子友善餐廳</div>
-                  </div>
-                </div>
-
-                {/* 下午景點 */}
-                <Link href={`/spot/${encodeURIComponent(afternoonSpot.name)}`} style={{textDecoration:"none",color:"inherit"}}>
-                  <div style={{background:"#fff",borderRadius:14,padding:"12px 14px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 6px rgba(0,0,0,0.06)"}}>
-                    <div style={{fontWeight:800,color:"#FF6B6B",fontSize:14,minWidth:44,flexShrink:0}}>14:00</div>
-                    <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(afternoonSpot)})`}}>
-                      <img src={getSpotImage(afternoonSpot)} alt={afternoonSpot.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                    </div>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:14,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{afternoonSpot.name}</div>
-                      <div style={{fontSize:11,color:"#999",marginTop:2}}>{afternoonSpot.city} · {afternoonSpot.duration}</div>
-                    </div>
-                    <span style={{fontSize:13,color:"#FF6B6B",fontWeight:600,flexShrink:0}}>›</span>
-                  </div>
-                </Link>
-              </div>
-            </Section>
-          );
-        }
-        return null;
-      })()}
-
       {/* ── 情境懶人包（第二層：今日推薦不滿意往下找）── */}
       <Section title="🎯 極端情境懶人包" action="">
-        {/* 地區說明 */}
         {(()=>{
-          const nearRegion = gpsCoords ? REGIONS.find(r=>r.cities.includes(
-            SPOTS.filter(s=>s.lat&&s.lng)
+          // 從 GPS 判斷最近地區
+          let nearRegion = null;
+          if (gpsCoords) {
+            const nearestCity = SPOTS.filter(s=>s.lat&&s.lng)
               .map(s=>({city:s.city,d:Math.abs(s.lat-gpsCoords.lat)+Math.abs(s.lng-gpsCoords.lng)}))
-              .sort((a,b)=>a.d-b.d)[0]?.city
-          )) : null;
-          return nearRegion ? (
-            <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8}}>
-              📍 根據你的位置推薦 <b style={{color:"#FF6B6B"}}>{nearRegion.label}</b> 的景點
-            </div>
-          ) : (
-            <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
-              📍 開啟定位可推薦你附近的景點
-              <button onClick={findNearby} style={{background:"#FF6B6B",color:"#fff",border:"none",borderRadius:10,padding:"2px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
-                開啟定位
-              </button>
-            </div>
-          );
-        })()}
-        <div style={{display:"grid",gap:10,padding:"0 16px"}}>
-          {[
-            {
-              icon:"🆘", title:"救命！小孩電力歸零包",
-              desc:"有安全圍欄、工作人員看顧、讓小孩放電到沒電",
-              color:"linear-gradient(135deg,#ff6b6b,#ffa94d)",
-              filter: s => s.type==="indoor" && s.tags.some(t=>["遊樂園","親子","教育"].includes(t)),
-              chip:"rainy",
-            },
-            {
-              icon:"🌿", title:"低成本高回報放電區",
-              desc:"免門票、大草皮、可以野餐跑跳一整天",
-              color:"linear-gradient(135deg,#40c057,#69db7c)",
-              filter: s => s.fee==="免費" && s.type==="outdoor" && s.tags.some(t=>["公園","自然","散步","步道"].includes(t)),
-              chip:"free",
-            },
-            {
-              icon:"🌧️", title:"全台雨神同行備案",
-              desc:"下雨天專用，觀光工廠、博物館、室內體育場",
-              color:"linear-gradient(135deg,#4dabf7,#339af0)",
-              filter: s => s.type==="indoor" && s.tags.some(t=>["教育","歷史","科學","藝術","文化"].includes(t)),
-              chip:"rainy",
-            },
-            {
-              icon:"💰", title:"小資家庭高CP值精選",
-              desc:"門票200元以下，玩超過3小時，評價超好",
-              color:"linear-gradient(135deg,#ffd43b,#fcc419)",
-              filter: s => s.fee==="免費" || (s.fee==="付費" && s.duration && s.duration.includes("4")),
-              chip:"free",
-            },
-            {
-              icon:"🚀", title:"半天快閃不塞車",
-              desc:"停車容易、1–2小時玩完、親子都開心",
-              color:"linear-gradient(135deg,#9775fa,#7950f2)",
-              filter: s => s.parking==="容易" && s.duration && (s.duration.includes("1") || s.duration.includes("2")),
-              chip:"park",
-            },
-          ].map((pack) => {
-            // 找最近地區
-            let nearCities = null;
-            if (gpsCoords) {
-              const nearestCity = SPOTS.filter(s=>s.lat&&s.lng)
-                .map(s=>({city:s.city, d:Math.abs(s.lat-gpsCoords.lat)+Math.abs(s.lng-gpsCoords.lng)}))
-                .sort((a,b)=>a.d-b.d)[0]?.city;
-              const nearRegion = REGIONS.find(r=>r.cities.includes(nearestCity));
-              if (nearRegion) nearCities = nearRegion.cities;
-            }
+              .sort((a,b)=>a.d-b.d)[0]?.city;
+            nearRegion = REGIONS.find(r=>r.cities.includes(nearestCity)) || null;
+          }
 
-            // 只抓附近地區，不補全台
-            let spots = SPOTS.filter(s => pack.filter(s) && (!nearCities || nearCities.includes(s.city)))
-              .sort(()=>Math.random()-0.5).slice(0,3);
-
+          // 沒有 GPS → 顯示地區選擇器
+          if (!nearRegion) {
             return (
-              <div key={pack.title} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
-                <div style={{background:pack.color,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:28}}>{pack.icon}</span>
-                  <div>
-                    <div style={{color:"#fff",fontWeight:800,fontSize:14}}>{pack.title}</div>
-                    <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{pack.desc}</div>
-                  </div>
+              <div style={{padding:"0 16px"}}>
+                <div style={{fontSize:12,color:"#aaa",marginBottom:10}}>
+                  選擇你的地區，推薦你附近的景點：
                 </div>
-                <div style={{background:"#fff",padding:"10px 12px"}}>
-                  {spots.length === 0 ? (
-                    <div style={{color:"#bbb",fontSize:12,textAlign:"center",padding:"8px 0"}}>暫無符合景點</div>
-                  ) : (
-                    <div style={{display:"grid",gap:6}}>
-                      {spots.map(s=>(
-                        <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
-                          <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 4px",borderRadius:10}}>
-                            <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                              <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                            </div>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
-                              <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
-                            </div>
-                            <span style={{color:"#FF6B6B",fontSize:14,flexShrink:0}}>›</span>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  <button onClick={()=>{
-                    setActiveChip(pack.chip);
-                    setTab("explore");
-                    window.scrollTo({top:0,behavior:"instant"});
-                  }} style={{width:"100%",marginTop:8,padding:"8px",borderRadius:10,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:12,color:"#666",fontWeight:600,cursor:"pointer"}}>
-                    查看更多 →
-                  </button>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:10}}>
+                  {REGIONS.map(r=>(
+                    <button key={r.id} onClick={()=>{
+                      setGpsCoords({ lat: SPOTS.find(s=>r.cities.includes(s.city)&&s.lat)?.lat || 25,
+                                     lng: SPOTS.find(s=>r.cities.includes(s.city)&&s.lng)?.lng || 121,
+                                     manual:true, region:r.id });
+                    }} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px",borderRadius:14,border:`1.5px solid ${r.border}`,background:r.color,cursor:"pointer"}}>
+                      <span style={{fontSize:20}}>{r.icon}</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#333"}}>{r.label}</span>
+                    </button>
+                  ))}
                 </div>
+                <button onClick={findNearby} style={{width:"100%",padding:"10px",borderRadius:12,border:"none",background:"#FF6B6B",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                  📍 或開啟定位自動判斷
+                </button>
               </div>
             );
-          })}
-        </div>
+          }
+
+          const nearCities = nearRegion.cities;
+
+          return (
+            <>
+              <div style={{fontSize:12,color:"#aaa",padding:"0 16px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <span>📍 推薦 <b style={{color:"#FF6B6B"}}>{nearRegion.label}</b> 的景點</span>
+                <button onClick={()=>setGpsCoords(null)} style={{background:"none",border:"none",fontSize:11,color:"#aaa",cursor:"pointer",textDecoration:"underline"}}>換地區</button>
+              </div>
+              <div style={{display:"grid",gap:10,padding:"0 16px"}}>
+                {[
+                  { icon:"🆘", title:"救命！小孩電力歸零包", desc:"有安全圍欄、工作人員看顧、讓小孩放電到沒電", color:"linear-gradient(135deg,#ff6b6b,#ffa94d)", chip:"rainy",
+                    filter: s => s.type==="indoor" && s.tags.some(t=>["遊樂園","親子","教育"].includes(t)) },
+                  { icon:"🌿", title:"低成本高回報放電區", desc:"免門票、大草皮、可以野餐跑跳一整天", color:"linear-gradient(135deg,#40c057,#69db7c)", chip:"free",
+                    filter: s => s.fee==="免費" && s.type==="outdoor" && s.tags.some(t=>["公園","自然","散步","步道"].includes(t)) },
+                  { icon:"🌧️", title:"全台雨神同行備案", desc:"下雨天專用，觀光工廠、博物館、室內體育場", color:"linear-gradient(135deg,#4dabf7,#339af0)", chip:"rainy",
+                    filter: s => s.type==="indoor" && s.tags.some(t=>["教育","歷史","科學","藝術","文化"].includes(t)) },
+                  { icon:"💰", title:"小資家庭高CP值精選", desc:"門票200元以下，玩超過3小時，評價超好", color:"linear-gradient(135deg,#ffd43b,#fcc419)", chip:"free",
+                    filter: s => s.fee==="免費" || (s.fee==="付費" && s.duration && s.duration.includes("4")) },
+                  { icon:"🚀", title:"半天快閃不塞車", desc:"停車容易、1–2小時玩完、親子都開心", color:"linear-gradient(135deg,#9775fa,#7950f2)", chip:"park",
+                    filter: s => s.parking==="容易" && s.duration && (s.duration.includes("1") || s.duration.includes("2")) },
+                ].map((pack) => {
+                  // 嚴格只抓附近地區
+                  let spots = SPOTS.filter(s => pack.filter(s) && nearCities.includes(s.city))
+                    .sort(()=>Math.random()-0.5).slice(0,3);
+
+                  return (
+                    <div key={pack.title} style={{borderRadius:16,overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
+                      <div style={{background:pack.color,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
+                        <span style={{fontSize:28}}>{pack.icon}</span>
+                        <div>
+                          <div style={{color:"#fff",fontWeight:800,fontSize:14}}>{pack.title}</div>
+                          <div style={{color:"rgba(255,255,255,0.85)",fontSize:11,marginTop:2}}>{pack.desc}</div>
+                        </div>
+                      </div>
+                      <div style={{background:"#fff",padding:"10px 12px"}}>
+                        {spots.length === 0 ? (
+                          <div style={{color:"#bbb",fontSize:12,textAlign:"center",padding:"8px 0"}}>此地區暫無符合景點</div>
+                        ) : (
+                          <div style={{display:"grid",gap:6}}>
+                            {spots.map(s=>(
+                              <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
+                                <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 4px",borderRadius:10}}>
+                                  <div style={{width:36,height:36,borderRadius:10,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
+                                    <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+                                  </div>
+                                  <div style={{flex:1,minWidth:0}}>
+                                    <div style={{fontWeight:700,fontSize:13,color:"#222",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{s.name}</div>
+                                    <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
+                                  </div>
+                                  <span style={{color:"#FF6B6B",fontSize:14,flexShrink:0}}>›</span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                        <button onClick={()=>{setActiveChip(pack.chip);setTab("explore");window.scrollTo({top:0,behavior:"instant"});}}
+                          style={{width:"100%",marginTop:8,padding:"8px",borderRadius:10,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:12,color:"#666",fontWeight:600,cursor:"pointer"}}>
+                          查看更多 →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
       </Section>
 
       {/* ── 不知道去哪巫師（第三層：最後防線）── */}
