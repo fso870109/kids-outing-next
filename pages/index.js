@@ -923,66 +923,6 @@ function HomePage({favSet,visited,itinerary,toggleFav,toggleVisited,addItinerary
         </div>
       </Section>
 
-      {/* ── 不知道去哪 巫師 ── */}
-      <div style={{margin:"8px 16px 16px"}}>
-        {wizardStep===0&&(
-          <div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",borderRadius:20,padding:"20px",textAlign:"center"}}>
-            <div style={{fontSize:32,marginBottom:8}}>🤷</div>
-            <div style={{color:"#fff",fontWeight:800,fontSize:16,marginBottom:4}}>不知道去哪？</div>
-            <div style={{color:"rgba(255,255,255,0.85)",fontSize:13,marginBottom:16}}>回答幾個問題，讓我幫你挑！</div>
-            <button onClick={()=>setWizardStep(1)} style={{background:"#fff",color:"#667eea",border:"none",borderRadius:20,padding:"10px 28px",fontSize:14,fontWeight:700,cursor:"pointer"}}>幫我推薦 →</button>
-          </div>
-        )}
-        {wizardStep>0&&wizardStep<99&&(
-          <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
-            <div style={{fontSize:12,color:"#aaa",marginBottom:4}}>問題 {wizardStep}/{WIZARD.length}</div>
-            <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:16}}>{WIZARD[wizardStep-1].q}</div>
-            <div style={{display:"grid",gridTemplateColumns:WIZARD[wizardStep-1].opts.length>4?"1fr 1fr 1fr":"1fr 1fr",gap:8}}>
-              {WIZARD[wizardStep-1].opts.map(opt=>{
-                const key=WIZARD[wizardStep-1].key;
-                return (
-                  <button key={opt.val} onClick={()=>{
-                    const ans={...wizardAnswers,[key]:opt.val};
-                    setWizardAnswers(ans);
-                    if(wizardStep===WIZARD.length) runWizard(ans);
-                    else setWizardStep(wizardStep+1);
-                  }} style={{padding:"12px 8px",borderRadius:12,border:"1.5px solid #eee",background:"#f8f9fa",fontSize:13,fontWeight:600,cursor:"pointer",color:"#333",textAlign:"center"}}>
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-            <button onClick={()=>{setWizardStep(0);setWizardAnswers({});}} style={{marginTop:12,background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer"}}>← 重新來過</button>
-          </div>
-        )}
-        {wizardStep===99&&(
-          <div style={{background:"#fff",borderRadius:20,padding:"20px",boxShadow:"0 4px 20px rgba(0,0,0,0.1)"}}>
-            <div style={{fontWeight:800,fontSize:16,color:"#333",marginBottom:4}}>🎉 幫你找到了！</div>
-            <div style={{fontSize:13,color:"#aaa",marginBottom:16}}>{wizardResult.length>0?"根據你的條件推薦 3 個景點":"放寬條件後推薦你這些景點"}</div>
-            {wizardResult.length===0?(
-              <div style={{textAlign:"center",padding:"20px 0",color:"#bbb"}}><div style={{fontSize:36,marginBottom:8}}>🏜️</div><div style={{fontSize:13}}>找不到符合的景點</div></div>
-            ):(
-              <div style={{display:"grid",gap:10}}>
-                {wizardResult.map(s=>(
-                  <Link key={s.id} href={`/spot/${encodeURIComponent(s.name)}`} style={{textDecoration:"none"}}>
-                    <div style={{display:"flex",gap:12,alignItems:"center",padding:"10px",background:"#f8f9fa",borderRadius:12}}>
-                      <div style={{width:44,height:44,borderRadius:12,overflow:"hidden",flexShrink:0,background:`linear-gradient(135deg,${getGradient(s)})`}}>
-                        <img src={getSpotImage(s)} alt={s.name} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
-                      </div>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:14,color:"#222"}}>{s.name}</div>
-                        <div style={{fontSize:11,color:"#999"}}>{s.city} · {s.fee} · {s.type==="indoor"?"室內":"戶外"}</div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-            <button onClick={()=>{setWizardStep(0);setWizardAnswers({});setWizardResult([]);}} style={{marginTop:12,width:"100%",padding:"10px",border:"1.5px solid #eee",borderRadius:12,background:"none",fontSize:13,color:"#666",cursor:"pointer"}}>重新推薦</button>
-          </div>
-        )}
-      </div>
-
       {/* 推薦景點浮動按鈕 */}
       <a href="https://forms.gle/AvoceS4azn5uFAB68" target="_blank" rel="noopener noreferrer"
         style={{position:"fixed",bottom:84,right:16,zIndex:998,background:"linear-gradient(135deg,#FF6B6B,#ffa94d)",color:"#fff",textDecoration:"none",padding:"10px 16px",borderRadius:24,fontSize:12,fontWeight:700,boxShadow:"0 4px 16px rgba(255,107,107,0.45)"}}>
